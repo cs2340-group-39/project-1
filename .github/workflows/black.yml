@@ -11,4 +11,4 @@ jobs:
         with:
           options: "--length 79"
           src: "."
-          version: "24.8.1.dev6"
+          version: "24.8.0"

@@ -9,6 +9,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: psf/black@stable
         with:
-          options: "--length 79"
+          options: "--line-length 79"
           src: "."
           version: "24.8.0"

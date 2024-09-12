@@ -1,9 +1,9 @@
 django
 django-allauth
 python-dotenv
-psycopg
-psycopg2
-psycopg2-binary
+psycopg             # For macOS
+psycopg2            # For Windows
+psycopg2-binary     # For Windows
 dnspython
 requests
 pyjwt

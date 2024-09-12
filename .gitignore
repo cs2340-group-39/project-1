@@ -93,3 +93,6 @@ db.sqlite3
 
 # ruff
 .ruff_cache
+
+# IntelliJ
+.idea

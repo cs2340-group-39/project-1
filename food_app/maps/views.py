@@ -10,3 +10,6 @@ def index(request: HttpRequest) -> HttpResponse:
         return HttpResponse(
             "Welcome to the Maps Page! Here you'll be able to see maps of restaurants"
         )
+def map(request):
+    # You can pass the API key or any other necessary data here
+    return render(request, 'maps/mapapp.html', {'api_key': 'AIzaSyDP3ajlMY1m8tfXZhe21XLXj_XEyg6cpoM'})

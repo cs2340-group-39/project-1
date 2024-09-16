@@ -1,7 +1,9 @@
 from django.urls import path
 
-from . import views
+from .views import index, map
 
 app_name = "maps"
 
-urlpatterns = []
+urlpatterns = [
+    path("map/", map, name="map"),
+]

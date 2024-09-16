@@ -13,7 +13,7 @@ def index(request: HttpRequest) -> HttpResponse:
         )
 
 
-def map_view(request):
+def map_view(request: HttpRequest) -> HttpRequest:
     # You can pass the API key or any other necessary data here
     return render(
         request,

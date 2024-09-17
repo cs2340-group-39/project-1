@@ -5,5 +5,5 @@ from .views import index
 app_name = "info"
 
 urlpatterns = [
-    path("index", index, name="index"),
+    path("index/", index, name="info_index"),
 ]

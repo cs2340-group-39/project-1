@@ -9,7 +9,13 @@
             height: 500px;  /* Adjust height as needed */
             width: 100%;    /* Adjust width as needed */
         }
-        #search-box {
+        #location-search-box {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #cuisine-search-box {
             margin: 10px;
             padding: 10px;
             border-radius: 5px;
@@ -20,7 +26,11 @@
 <body>
 <h1>Google Maps Search</h1>
 <!-- Search bar for places -->
-<input id="search-box" type="text" placeholder="Search for places...">
+<label for="location-search-box"></label><input id="location-search-box" type="text" placeholder="Search for places...">
+
+<!-- Search for Cuisine and Place !-->
+<label for="cuisine-search-box"></label><input id="cuisine-search-box" type="text" placeholder="Search for cuisine type...">
+<button onclick="searchByCuisine()">Search</button>
 
 <!-- The map will be rendered here -->
 <div id="map"></div>
@@ -28,6 +38,8 @@
 <!-- Load the Google Maps JavaScript API with Places Library -->
 <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
 <script>
+    let map;
+    let markers = [];
     function initMap() {
         // Define the map options
         var mapOptions = {
@@ -35,11 +47,13 @@
         };
 
         // Create a new map
-        var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
         // Create a new PlacesAutocomplete instance
-        var input = document.getElementById('search-box');
+        var input = document.getElementById('location-search-box');
         var autocomplete = new google.maps.places.Autocomplete(input);
+
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input)
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
@@ -66,12 +80,17 @@
             });
         }
 
-            // Bind the autocomplete object to the map and the search box
+        // Bind the autocomplete object to the map and the search box
         autocomplete.bindTo('bounds', map);
 
         // Add an event listener to handle the place selection
         autocomplete.addListener('place_changed', function() {
             var place = autocomplete.getPlace();
+
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+
+            const bounds = new google.maps.LatLngBounds();
 
             if (!place.geometry) {
                 // User entered the name of a Place that was not suggested and pressed the Enter key
@@ -98,9 +117,50 @@
                 content: place.name
             });
             infoWindow.open(map, marker);
+            map.fitBounds(bounds);
         });
     }
 
+    // Allows us to search by cuisine type using a search button
+    function searchByCuisine() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+                const service = new google.maps.places.PlacesService(map);
+
+                const request = {
+                    location: userLocation,
+                    radius: '5000', // 5 km radius
+                    type: ['restaurant'],
+                    keyword: document.getElementById('cuisine-input')
+                };
+
+                service.nearbySearch(request, function(results, status) {
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        markers.forEach(marker => marker.setMap(null));
+                        markers = [];
+
+                        results.forEach(function(place) {
+                            new google.maps.Marker({
+                                map: map,
+                                position: place.geometry.location,
+                                title: place.name
+                            });
+                        });
+
+                        map.setCenter(userLocation); // Center map on user's location
+                    } else {
+                        console.error('Places search failed due to: ' + status);
+                    }
+                });
+            }, function(error) {
+                console.error('Error getting location: ' + error.message);
+            });
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    }
     // Initialize the map when the window loads
     window.onload = initMap;
 </script>

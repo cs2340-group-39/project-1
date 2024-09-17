@@ -20,9 +20,10 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/info/index/", permanent=True)),
+    path("", RedirectView.as_view(url="homepage/", permanent=True)),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("info/", include("info.urls")),
     path("maps/", include("maps.urls")),
+    path("homepage/", include("homepage.urls")),
 ]

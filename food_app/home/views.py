@@ -6,4 +6,4 @@ def home_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return render(request, "home/home_view.html")
     else:
-        return redirect("/info/index/")
+        return redirect("/info/index/", permanent=True)

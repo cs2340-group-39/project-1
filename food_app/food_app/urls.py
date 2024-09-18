@@ -25,9 +25,5 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("info/", include("info.urls")),
     path("maps/", include("maps.urls")),
-<<<<<<< Updated upstream
-    path("homepage/", include("homepage.urls")),
-=======
     path("home/", include("home.urls")),
->>>>>>> Stashed changes
 ]

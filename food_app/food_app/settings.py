@@ -46,12 +46,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "info",
     "maps",
-<<<<<<< Updated upstream
-    "homepage",
-=======
     "profiles",
     "home",
->>>>>>> Stashed changes
 ]
 
 MIDDLEWARE = [

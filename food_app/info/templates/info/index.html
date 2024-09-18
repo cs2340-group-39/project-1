@@ -1,0 +1,19 @@
+{% load static %}
+
+<!DOCTYPE html>
+<body>
+<script src="{% static 'plugins/react/react.development.js' %}"></script>
+<script src="{% static 'plugins/react/react-dom.development.js' %}"></script>
+<!-- JSX support-->
+<script src="{% static 'plugins/react/babel.min.js' %}"></script>
+
+{% block content_wrapper %}
+<div class="content-wrapper">
+    <div id="like_button_container"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static '/info/likeButton.js' %}" type="text/babel"></script>
+{% endblock %}
+</body>

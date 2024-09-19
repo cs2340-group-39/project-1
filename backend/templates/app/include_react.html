@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Django with Vite and React</title>
+    {% load static %}
+    <script defer src="{% static 'app/bundle.js' %}"></script>
+  </head>
+
+  <body>
+    <div id="root" data-context="{{ data }}"></div>
+  </body>
+</html>

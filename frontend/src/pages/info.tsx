@@ -5,42 +5,61 @@ import "../index.css";
 
 import { Button } from "@/components/ui/button";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionTrigger,
-  AccordionItem,
-} from "@/components/ui/accordion";
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Link } from "@radix-ui/react-navigation-menu";
+import { Home, Info } from "lucide-react";
 
 function InfoPage(): JSX.Element {
   return (
     <>
-      <h1>
-        This is the Info Page. You are seeing this because you are not logged in
-        logged in.
-      </h1>
-      <Button>Sign In</Button>
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1">
-          <AccordionTrigger>Is it accessible?</AccordionTrigger>
-          <AccordionContent>
-            Yes. It adheres to the WAI-ARIA design pattern.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>Is it styled?</AccordionTrigger>
-          <AccordionContent>
-            Yes. It comes with default styles that matches the other
-            components&apos; aesthetic.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-3">
-          <AccordionTrigger>Is it animated?</AccordionTrigger>
-          <AccordionContent>
-            Yes. It&apos;s animated by default, but you can disable it if you
-            prefer.
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <header>
+        <div className="container mx-auto px-4">
+          <NavigationMenu>
+            <NavigationMenuList className="flex items-center justify-between py-4">
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  href="/"
+                  className="text-xl font-bold flex items-center"
+                >
+                  <Home className="mr-2" size={24} />
+                  Atlanta Food Finder
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <div className="flex items-center space-x-4">
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>
+                    <Info className="mr-2" size={18} />
+                    About
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid gap-3 p-4 w-[200px]">
+                      <li>
+                        <NavigationMenuLink
+                          href="/about/team"
+                          className="block py-2 px-4"
+                        >
+                          Our Team
+                        </NavigationMenuLink>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Button>
+                    <Link href="/accounts/">Log In or Sign Up</Link>
+                  </Button>
+                </NavigationMenuItem>
+              </div>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+      </header>
     </>
   );
 }

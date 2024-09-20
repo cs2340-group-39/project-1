@@ -3,63 +3,88 @@ import { createRoot } from "react-dom/client";
 
 import "../index.css";
 
-import { Button } from "@/components/ui/button";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import { Link } from "@radix-ui/react-navigation-menu";
-import { Home, Info } from "lucide-react";
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+} from "@nextui-org/navbar";
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Link,
+  NextUIProvider,
+} from "@nextui-org/react";
+
+const defaultContent =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
 
 function InfoPage(): JSX.Element {
   return (
     <>
-      <header>
-        <div className="container mx-auto px-4">
-          <NavigationMenu>
-            <NavigationMenuList className="flex items-center justify-between py-4">
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  href="/"
-                  className="text-xl font-bold flex items-center"
-                >
-                  <Home className="mr-2" size={24} />
-                  Atlanta Food Finder
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <div className="flex items-center space-x-4">
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger>
-                    <Info className="mr-2" size={18} />
-                    About
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid gap-3 p-4 w-[200px]">
-                      <li>
-                        <NavigationMenuLink
-                          href="/about/team"
-                          className="block py-2 px-4"
-                        >
-                          Our Team
-                        </NavigationMenuLink>
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Button>
-                    <Link href="/accounts/">Log In or Sign Up</Link>
-                  </Button>
-                </NavigationMenuItem>
-              </div>
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-      </header>
+      <Navbar>
+        <NavbarBrand>
+          <p className="font-bold text-inherit">Atlanta Food Finder</p>
+        </NavbarBrand>
+        <NavbarContent className="hidden sm:flex gap-4" justify="center">
+          <NavbarItem>
+            <Link color="foreground" href="#">
+              Features
+            </Link>
+          </NavbarItem>
+          <NavbarItem isActive>
+            <Link href="#" aria-current="page">
+              Customers
+            </Link>
+          </NavbarItem>
+          <NavbarItem>
+            <Link color="foreground" href="#">
+              Integrations
+            </Link>
+          </NavbarItem>
+        </NavbarContent>
+        <NavbarContent justify="end">
+          <NavbarItem className="hidden lg:flex">
+            <Link href="#">Login</Link>
+          </NavbarItem>
+          <NavbarItem>
+            <Button as={Link} color="primary" href="/accounts/" variant="flat">
+              Sign Up or Log In
+            </Button>
+          </NavbarItem>
+        </NavbarContent>
+      </Navbar>
+      <Accordion defaultExpandedKeys={["2"]}>
+        <AccordionItem
+          key="1"
+          aria-label="Accordion 1"
+          subtitle="Press to expand"
+          title="Accordion 1"
+        >
+          {defaultContent}
+        </AccordionItem>
+        <AccordionItem
+          key="2"
+          aria-label="Accordion 2"
+          subtitle={
+            <span>
+              Press to expand <strong>key 2</strong>
+            </span>
+          }
+          title="Accordion 2"
+        >
+          {defaultContent}
+        </AccordionItem>
+        <AccordionItem
+          key="3"
+          aria-label="Accordion 3"
+          subtitle="Press to expand"
+          title="Accordion 3"
+        >
+          {defaultContent}
+        </AccordionItem>
+      </Accordion>
     </>
   );
 }
@@ -68,6 +93,8 @@ const rootElement = document.getElementById("root")!;
 
 createRoot(rootElement).render(
   <StrictMode>
-    <InfoPage />
+    <NextUIProvider>
+      <InfoPage />
+    </NextUIProvider>
   </StrictMode>
 );

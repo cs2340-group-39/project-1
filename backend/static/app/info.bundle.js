@@ -1,0 +1,1 @@
+import{c as t,j as e,r as o}from"./assets/client-Dzuxdzeo.js";function r(){return e.jsx(e.Fragment,{children:e.jsx("h1",{children:"This is the Info Page. You are seeing this because you are not logged in logged in."})})}const n=document.getElementById("root");t(n).render(e.jsx(o.StrictMode,{children:e.jsx(r,{})}));

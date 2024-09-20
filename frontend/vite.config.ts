@@ -13,12 +13,19 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "src/main.tsx"),
+        home: resolve(__dirname, "src/pages/home.tsx"),
+        info: resolve(__dirname, "src/pages/info.tsx"),
+        maps: resolve(__dirname, "src/pages/maps.tsx"),
       },
       output: {
-        entryFileNames: "bundle.js",
+        entryFileNames: "[name].bundle.js",
         assetFileNames: "[name][extname]",
       },
+    },
+  },
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, "src"),
     },
   },
 });

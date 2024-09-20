@@ -2,9 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Django with Vite and React</title>
     {% load static %}
-    <script defer src="{% static 'app/bundle.js' %}"></script>
+    <script
+      defer
+      type="module"
+      src="{% static 'app/home.bundle.js' %}"
+    ></script>
   </head>
 
   <body>

@@ -9,4 +9,3 @@ requests
 pyjwt
 cryptography
 ruff
-django-rest-framework

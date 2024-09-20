@@ -1,9 +1,7 @@
-"use client";
-import { cn } from "@/lib/utils";
-import { Link, LinkProps } from "@nextui-org/react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { createContext, useContext, useState } from "react";
+import { cn } from "../../lib/utils";
 
 interface Links {
   label: string;
@@ -155,27 +153,12 @@ export const MobileSidebar = ({
   );
 };
 
-export const SidebarLink = ({
-  link,
-  className,
-  ...props
-}: {
-  link: Links;
-  className?: string;
-  props?: LinkProps;
-}) => {
+export const SidebarLink = ({ link }: { link: Links; className?: string }) => {
   const { open, animate } = useSidebar();
   return (
-    <Link
-      href={link.href}
-      className={cn(
-        "flex items-center justify-start gap-2  group/sidebar py-2",
-        className
-      )}
-      {...props}
-    >
+    <>
+      {" "}
       {link.icon}
-
       <motion.span
         animate={{
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
@@ -185,6 +168,6 @@ export const SidebarLink = ({
       >
         {link.label}
       </motion.span>
-    </Link>
+    </>
   );
 };

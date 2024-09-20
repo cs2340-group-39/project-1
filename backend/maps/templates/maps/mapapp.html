@@ -275,10 +275,10 @@
                                 const infoWindow = new google.maps.InfoWindow();
                                 infoWindow.setContent(contentString);
                                 infoWindow.open(map, locationMarker);
-                                // if it is fullscreen, put the info window in the top right
-                                if (document.fullscreenElement) {
+                                // if it is fullscreen, put the info window on the right
+                                //if (document.fullscreenElement) {
                                     openInfoPanel(contentString, details.name);
-                                }
+                                //}
                                 if (currentInfoWindow) {
                                     currentInfoWindow.close()
                                 }

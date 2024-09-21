@@ -13,7 +13,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        home: resolve(__dirname, "src/pages/home.tsx"),
+        dashboard: resolve(__dirname, "src/pages/dashboard.tsx"),
         info: resolve(__dirname, "src/pages/info.tsx"),
         maps: resolve(__dirname, "src/pages/maps.tsx"),
       },

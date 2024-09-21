@@ -122,3 +122,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Static Files
+./backend/static/app/*

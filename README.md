@@ -1,7 +1,15 @@
 ## Group 39's Food App
 
-Everything has changed from the initial setup,
-I am working on a new script called `setup.py`
-Ideally, once you run it, it will set everything up for you.
-At the moment, it is not yet completed, but it will be soon.
-Until then, just write code as you normally would.
+To setup this project, first ensure you have `python`, `node`, `npm`, and `npx` installed and in your PATH.
+
+First, cd into backend and create a new virtual environment and install all the requirements in `requirements.txt`
+
+Second, cd out of backend and then into frontend and run `npm install`. Once this command finishes, a new directory called `node_modules` should appear. This is the equivalent of `venv` for javascript and typescript
+
+To run the project, you MUST ALWAYS follow these steps:
+
+1. The very first thing you must do is cd into frontend and run `npm run build`. This command generates staticfiles which are used by Django. If you don't run this command, the UI will not work as intended.
+
+2. Next, cd out of frontend and into backend and then you can run `python manage.py runserver`.
+
+3. If you make any changes AT ALL to the frontend, to see these changes relect on the website, you must re-run `npm run build` in the frontend directory. It DOES NOT matter if the Django server is already running. Live reload DOES NOT work! Every time you make a change to the frontend, you must re-compile the staticfiles to be used by Django.

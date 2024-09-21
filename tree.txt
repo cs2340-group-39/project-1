@@ -1,0 +1,31 @@
+.
+├── README.md
+├── backend
+│   ├── core
+│   ├── home
+│   ├── info
+│   ├── manage.py
+│   ├── maps
+│   ├── profiles
+│   ├── requirements.txt
+│   └── static
+├── frontend
+│   ├── components.json
+│   ├── eslint.config.js
+│   ├── node_modules
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── public
+│   ├── src
+│   ├── tailwind.config.js
+│   ├── tsconfig.app.json
+│   ├── tsconfig.app.tsbuildinfo
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   ├── tsconfig.node.tsbuildinfo
+│   └── vite.config.ts
+├── setup.py
+└── tree.txt
+
+12 directories, 17 files

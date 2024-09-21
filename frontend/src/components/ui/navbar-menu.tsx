@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import React, { useState } from "react";
 
 const transition = {
   type: "spring",
@@ -8,7 +8,59 @@ const transition = {
   stiffness: 100,
   restDelta: 0.001,
   restSpeed: 0.001,
+  duration: 0.3,
 };
+
+// export const MenuItem = ({
+//   setActive,
+//   active,
+//   item,
+//   children,
+// }: {
+//   setActive: (item: string) => void;
+//   active: string | null;
+//   item: string;
+//   children?: React.ReactNode;
+// }) => {
+//   return (
+//     <div
+//       onMouseEnter={() => setActive(item)}
+//       onMouseLeave={() => setActive(item)}
+//       className="relative "
+//     >
+//       <motion.p
+//         transition={{ duration: 0.3 }}
+//         className="cursor-pointer text-black hover:opacity-[0.9] dark:text-white"
+//       >
+//         {item}
+//       </motion.p>
+//       {active !== null && (
+//         <motion.div
+//           initial={{ opacity: 0, scale: 0.85, y: 10 }}
+//           animate={{ opacity: 1, scale: 1, y: 0 }}
+//           transition={transition}
+//         >
+//           {active === item && (
+//             <div className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4">
+//               <motion.div
+//                 transition={transition}
+//                 layoutId="active" // layoutId ensures smooth animation
+//                 className="bg-white dark:bg-black backdrop-blur-sm rounded-2xl overflow-hidden border border-black/[0.2] dark:border-white/[0.2] shadow-xl"
+//               >
+//                 <motion.div
+//                   layout // layout ensures smooth animation
+//                   className="w-max h-full p-4"
+//                 >
+//                   {children}
+//                 </motion.div>
+//               </motion.div>
+//             </div>
+//           )}
+//         </motion.div>
+//       )}
+//     </div>
+//   );
+// };
 
 export const MenuItem = ({
   setActive,
@@ -16,43 +68,53 @@ export const MenuItem = ({
   item,
   children,
 }: {
-  setActive: (item: string) => void;
+  setActive: (item: string | null) => void;
   active: string | null;
   item: string;
   children?: React.ReactNode;
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <div onMouseEnter={() => setActive(item)} className="relative ">
+    <div
+      onMouseEnter={() => {
+        setActive(item);
+        setIsHovered(true);
+      }}
+      onMouseLeave={() => {
+        setActive(null);
+        setIsHovered(false);
+      }}
+      className="relative"
+    >
       <motion.p
         transition={{ duration: 0.3 }}
         className="cursor-pointer text-black hover:opacity-[0.9] dark:text-white"
       >
         {item}
       </motion.p>
-      {active !== null && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={transition}
-        >
-          {active === item && (
+      <AnimatePresence>
+        {isHovered && active != null && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.85, y: 10 }}
+            transition={transition}
+          >
             <div className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4">
               <motion.div
                 transition={transition}
-                layoutId="active" // layoutId ensures smooth animation
+                layoutId="active"
                 className="bg-white dark:bg-black backdrop-blur-sm rounded-2xl overflow-hidden border border-black/[0.2] dark:border-white/[0.2] shadow-xl"
               >
-                <motion.div
-                  layout // layout ensures smooth animation
-                  className="w-max h-full p-4"
-                >
+                <motion.div layout className="w-max h-full p-4">
                   {children}
                 </motion.div>
               </motion.div>
             </div>
-          )}
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -64,13 +126,16 @@ export const Menu = ({
   setActive: (item: string | null) => void;
   children: React.ReactNode;
 }) => {
+  children;
   return (
-    <nav
-      onMouseLeave={() => setActive(null)} // resets the state
-      className="relative rounded-full border border-transparent dark:bg-black dark:border-white/[0.2] bg-white shadow-input flex justify-center space-x-4 px-8 py-6 "
-    >
-      {children}
-    </nav>
+    <>
+      <nav
+        onMouseLeave={() => setActive(null)} // resets the state
+        className="relative rounded-full backdrop-blur-xl dark:bg-black/65 dark:border-white/[0.2] bg-white/65 shadow-input flex justify-center space-x-4 px-8 py-6 shadow-md border-1 border-slate-300"
+      >
+        {children}
+      </nav>
+    </>
   );
 };
 

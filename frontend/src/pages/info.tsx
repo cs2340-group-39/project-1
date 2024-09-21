@@ -1,44 +1,21 @@
 import { motion } from "framer-motion";
-import { StrictMode, useState } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import Navbar from "../components/blocks/navbar";
 import { AuroraBackground } from "../components/ui/aurora-background";
-import { HoveredLink, Menu, MenuItem } from "../components/ui/navbar-menu";
+import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
+import { TextHoverEffect } from "../components/ui/text-hover-effect";
 import "../globals.css";
-import { cn } from "../lib/utils";
 
-function Navbar({ className }: { className?: string }) {
-  const [active, setActive] = useState<string | null>(null);
-  return (
-    <div
-      className={cn("fixed top-10 inset-x-0 max-w-2xl mx-auto z-50", className)}
-    >
-      <Menu setActive={setActive}>
-        <MenuItem
-          setActive={setActive}
-          active={active}
-          item="About The Developers"
-        >
-          <div className="flex flex-col space-y-4 text-sm">
-            <HoveredLink href="/web-dev">Web Development</HoveredLink>
-          </div>
-        </MenuItem>
-        <MenuItem setActive={setActive} active={null} item="Dashboard">
-          <div className="flex flex-col space-y-4 text-sm">
-            <HoveredLink href="/home/index/" />
-          </div>
-        </MenuItem>
-        <MenuItem setActive={setActive} active={null} item="Log In">
-          <div className="flex flex-col space-y-4 text-sm">
-            <HoveredLink href="/accounts/" />
-          </div>
-        </MenuItem>
-      </Menu>
-    </div>
-  );
+interface InfoPageData {
+  data: {
+    userLoggedIn: boolean;
+    username: string;
+  };
 }
 
-function InfoPage() {
+function InfoPage({ data }: InfoPageData) {
   return (
     <>
       <AuroraBackground>
@@ -58,9 +35,28 @@ function InfoPage() {
           <div className="font-extralight text-base md:text-4xl dark:text-neutral-200 py-4">
             CS2340 Group 39
           </div>
-          <button className="inline-flex h-12 animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50">
-            Sign Up
-          </button>
+          {data.userLoggedIn ? (
+            <>
+              <TextHoverEffect text={"Welcome " + data.username + "!"} />
+              <div>
+                <HoverBorderGradient
+                  containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                  className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                  as="button"
+                >
+                  Continue to Dashboard
+                </HoverBorderGradient>
+              </div>
+            </>
+          ) : (
+            <HoverBorderGradient
+              containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+              className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+              as="button"
+            >
+              Sign Up or Log In
+            </HoverBorderGradient>
+          )}
         </motion.div>
       </AuroraBackground>
       <Navbar className="top-2" />
@@ -69,9 +65,10 @@ function InfoPage() {
 }
 
 const rootElement = document.getElementById("root")!;
+const data = JSON.parse(rootElement.getAttribute("data-context")!);
 
 createRoot(rootElement).render(
   <StrictMode>
-    <InfoPage />
+    <InfoPage data={data} />
   </StrictMode>
 );

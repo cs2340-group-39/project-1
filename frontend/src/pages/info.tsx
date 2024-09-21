@@ -70,7 +70,7 @@ const data = JSON.parse(rootElement.getAttribute("data-context")!);
 
 createRoot(rootElement).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <InfoPage data={data} />
     </ThemeProvider>
   </StrictMode>

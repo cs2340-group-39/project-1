@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef, useState } from "react";
 import { useOutsideClick } from "../hooks/use-outside-click";
-import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+// import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 // export default function About() {
 //   const [active, setActive] = useState<(typeof cards)[number] | boolean | null>(
@@ -216,65 +216,65 @@ export default function About() {
             >
               <CloseIcon />
             </motion.button>
-            <ScrollArea className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white dark:bg-neutral-900 sm:rounded-2xl overflow-hidden">
-              <motion.div
-                layoutId={`card-${active.title}-${id}`}
-                ref={ref}
-                className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white dark:bg-neutral-900 sm:rounded-2xl overflow-hidden"
-              >
-                <motion.div layoutId={`image-${active.title}-${id}`}>
-                  <img
-                    width="200"
-                    height="200"
-                    src={active.src}
-                    alt={active.title}
-                    className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-center"
-                  />
-                </motion.div>
-
-                <div>
-                  <div className="flex justify-between items-start p-4">
-                    <div className="">
-                      <motion.h3
-                        layoutId={`title-${active.title}-${id}`}
-                        className="font-bold text-neutral-700 dark:text-neutral-200"
-                      >
-                        {active.title}
-                      </motion.h3>
-                      <motion.p
-                        layoutId={`description-${active.description}-${id}`}
-                        className="text-neutral-600 dark:text-neutral-400"
-                      >
-                        {active.description}
-                      </motion.p>
-                    </div>
-
-                    <motion.a
-                      layoutId={`button-${active.title}-${id}`}
-                      href={active.ctaLink}
-                      target="_blank"
-                      className="px-4 py-3 text-sm rounded-full font-bold bg-[#010305] text-white"
-                    >
-                      {active.ctaText}
-                    </motion.a>
-                  </div>
-                  <div className="pt-4 relative px-4">
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]"
-                    >
-                      {typeof active.content === "function"
-                        ? active.content()
-                        : active.content}
-                    </motion.div>
-                  </div>
-                </div>
+            {/* <ScrollArea className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white dark:bg-neutral-900 sm:rounded-2xl overflow-hidden"> */}
+            <motion.div
+              layoutId={`card-${active.title}-${id}`}
+              ref={ref}
+              className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white dark:bg-neutral-900 sm:rounded-2xl overflow-hidden"
+            >
+              <motion.div layoutId={`image-${active.title}-${id}`}>
+                <img
+                  width="200"
+                  height="200"
+                  src={active.src}
+                  alt={active.title}
+                  className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-center"
+                />
               </motion.div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+
+              <div>
+                <div className="flex justify-between items-start p-4">
+                  <div className="">
+                    <motion.h3
+                      layoutId={`title-${active.title}-${id}`}
+                      className="font-bold text-neutral-700 dark:text-neutral-200"
+                    >
+                      {active.title}
+                    </motion.h3>
+                    <motion.p
+                      layoutId={`description-${active.description}-${id}`}
+                      className="text-neutral-600 dark:text-neutral-400"
+                    >
+                      {active.description}
+                    </motion.p>
+                  </div>
+
+                  <motion.a
+                    layoutId={`button-${active.title}-${id}`}
+                    href={active.ctaLink}
+                    target="_blank"
+                    className="px-4 py-3 text-sm rounded-full font-bold bg-[#010305] text-white"
+                  >
+                    {active.ctaText}
+                  </motion.a>
+                </div>
+                <div className="pt-4 relative px-4">
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]"
+                  >
+                    {typeof active.content === "function"
+                      ? active.content()
+                      : active.content}
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+            {/* <ScrollBar orientation="horizontal" />
+            </ScrollArea> */}
           </div>
         ) : null}
       </AnimatePresence>

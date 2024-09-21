@@ -9,3 +9,4 @@ requests
 pyjwt
 cryptography
 ruff
+django-ninja

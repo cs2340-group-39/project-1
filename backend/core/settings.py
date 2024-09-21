@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "info",
     "maps",
-    "profiles",
-    "home",
+    "users",
+    "dashboard",
 ]
 
 MIDDLEWARE = [

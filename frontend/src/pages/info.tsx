@@ -3,11 +3,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import Navbar from "../components/blocks/navbar";
+import { ThemeProvider } from "../components/theme-provider";
 import { AuroraBackground } from "../components/ui/aurora-background";
 import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
 import { TextHoverEffect } from "../components/ui/text-hover-effect";
 import "../globals.css";
-import { ThemeProvider } from "../components/theme-provider";
 
 interface InfoPageData {
   data: {
@@ -40,27 +40,31 @@ function InfoPage({ data }: InfoPageData) {
             <>
               <TextHoverEffect text={"Welcome " + data.username + "!"} />
               <div>
-                <HoverBorderGradient
-                  containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                  className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                  as="button"
-                >
-                  Continue to Dashboard
-                </HoverBorderGradient>
+                <a href="/home/index/">
+                  <HoverBorderGradient
+                    containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                    className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                    as="button"
+                  >
+                    Continue to Dashboard
+                  </HoverBorderGradient>
+                </a>
               </div>
             </>
           ) : (
-            <HoverBorderGradient
-              containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-              className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-              as="button"
-            >
-              Sign Up or Log In
-            </HoverBorderGradient>
+            <a href="/accounts/">
+              <HoverBorderGradient
+                containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                as="button"
+              >
+                Sign Up or Log In
+              </HoverBorderGradient>
+            </a>
           )}
         </motion.div>
       </AuroraBackground>
-      <Navbar className="top-2" />
+      <Navbar className="top-2" data={{ userLoggedIn: data.userLoggedIn }} />
     </>
   );
 }

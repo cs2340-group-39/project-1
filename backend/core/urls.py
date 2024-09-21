@@ -25,5 +25,6 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("info/", include("info.urls")),
     path("maps/", include("maps.urls")),
-    path("home/", include("home.urls")),
+    path("users/", include("users.urls")),
+    path("dashboard/", include("dashboard.urls")),
 ]

@@ -7,7 +7,14 @@ import { Menu, MenuItem } from "../ui/navbar-menu";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import About from "./about";
 
-export default function Navbar({ className }: { className?: string }) {
+interface NavbarData {
+  className?: string;
+  data: {
+    userLoggedIn: boolean;
+  };
+}
+
+export default function Navbar({ className, data }: NavbarData) {
   const [active, setActive] = useState<string | null>(null);
   return (
     <div
@@ -25,17 +32,16 @@ export default function Navbar({ className }: { className?: string }) {
           </ScrollArea>
         </MenuItem>
         <LinkPreview
-          url="https://ui.aceternity.com"
-          className="font-bold bg-clip-text text-transparent bg-gradient-to-br from-purple-300 to-blue-300 to-green-300"
-        >
-          Dashboard
-        </LinkPreview>
-        <LinkPreview
           url="https://github.com/cs2340-group-39/project-1"
           className="text-black"
         >
           GitHub
         </LinkPreview>
+        {data.userLoggedIn ? (
+          <LinkPreview url="/accounts/logout/" className="text-black">
+            Log Out
+          </LinkPreview>
+        ) : null}
       </Menu>
     </div>
   );

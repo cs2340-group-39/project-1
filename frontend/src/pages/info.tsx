@@ -7,6 +7,7 @@ import { AuroraBackground } from "../components/ui/aurora-background";
 import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
 import { TextHoverEffect } from "../components/ui/text-hover-effect";
 import "../globals.css";
+import { ThemeProvider } from "../components/theme-provider";
 
 interface InfoPageData {
   data: {
@@ -69,6 +70,8 @@ const data = JSON.parse(rootElement.getAttribute("data-context")!);
 
 createRoot(rootElement).render(
   <StrictMode>
-    <InfoPage data={data} />
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <InfoPage data={data} />
+    </ThemeProvider>
   </StrictMode>
 );

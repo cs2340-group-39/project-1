@@ -58,7 +58,7 @@ const AssociatedEmails: React.FC<AssociatedEmailsProps> = ({
               className={cn(
                 "text-zinc-600 dark:text-zinc-400 mb-4 last:mb-0 flex flex-col p-2 rounded cursor-pointer",
                 selectedEmail === email.address &&
-                  "p-4 animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                  "p-4 border-2 animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50"
               )}
               onClick={() => onSelectEmail(email.address)}
             >

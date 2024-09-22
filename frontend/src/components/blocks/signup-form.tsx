@@ -53,7 +53,7 @@ const ErrorMessages: React.FC<ErrorMessagesProps> = ({ messages }) => {
   ) : null;
 };
 
-export function SignupForm({ className }: { className: string }) {
+export function SignupForm() {
   const [loading, setLoading] = useState(false);
   const defaultLoadingStates = [
     {
@@ -145,21 +145,13 @@ export function SignupForm({ className }: { className: string }) {
   };
 
   return (
-    <div
-      className={cn(
-        "max-w-md w-full rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black",
-        className
-      )}
-    >
+    <div className="max-w-md w-full rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black overflow-auto max-h-[75vh] z-10 relative">
       <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">
         Welcome to the Atlanta Food Finder
       </h2>
       <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
         If you already have an account, you may login{" "}
-        <LinkPreview
-          url="/users/login/"
-          className="text-black font-bold hover:z-50"
-        >
+        <LinkPreview url="/users/login/" className="text-black font-bold">
           here
         </LinkPreview>
         .

@@ -10,7 +10,9 @@ function SignupPage(): JSX.Element {
   return (
     <>
       <AuroraBackground>
-        <SignupForm className="max-h-[75vh] overflow-y-scroll bg-white/75 dark:bg-black/75 rounded-2xl backdrop-blur-2xl" />
+        {/* <div className=""> */}
+        <SignupForm />
+        {/* </div> */}
       </AuroraBackground>
     </>
   );

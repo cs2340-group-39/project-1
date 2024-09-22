@@ -15,7 +15,9 @@ export default defineConfig({
       input: {
         dashboard: resolve(__dirname, "src/pages/dashboard.tsx"),
         info: resolve(__dirname, "src/pages/info.tsx"),
-        maps: resolve(__dirname, "src/pages/maps.tsx"),
+        userLogin: resolve(__dirname, "src/pages/user-pages/user-login.tsx"),
+        userLogout: resolve(__dirname, "src/pages/user-pages/user-logout.tsx"),
+        userSignup: resolve(__dirname, "src/pages/user-pages/user-signup.tsx"),
       },
       output: {
         entryFileNames: "[name].bundle.js",

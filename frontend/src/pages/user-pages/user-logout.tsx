@@ -1,12 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import "../globals.css";
+import "../../globals.css";
 
-function MapsPage(): JSX.Element {
+function LogoutPage(): JSX.Element {
   return (
     <>
-      <h1>This is the Maps Page.</h1>
+      <h1>This is the Logout Page.</h1>
     </>
   );
 }
@@ -15,6 +15,6 @@ const rootElement = document.getElementById("root")!;
 
 createRoot(rootElement).render(
   <StrictMode>
-    <MapsPage />
+    <LogoutPage />
   </StrictMode>
 );

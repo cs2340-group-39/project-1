@@ -210,6 +210,10 @@ const williamMcConnellURL = new URL(
   "./profile-pictures/william-mcconnell.jpg",
   import.meta.url
 ).href;
+const nicholasNietscheURL = new URL(
+  "./profile-pictures/nicholas-neitsche.jpg",
+  import.meta.url
+).href;
 
 const cards = [
   {
@@ -290,19 +294,21 @@ const cards = [
   {
     description: "Developer 4",
     title: "Nicholas Neitsche",
-    src: "https://assets.aceternity.com/demos/toh-phir-aao.jpeg",
+    src: nicholasNietscheURL,
     ctaText: "View Bio",
     ctaLink: "#",
     content: () => {
       return (
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
+          Hi, I&apos;m Nicholas Nitsche. I have a passion for playing tennis;
+          there&apos;s something exhilarating about the competition and the
+          skill involved in each match. I love the way it challenges me both
+          physically and mentally. In addition to tennis, I&apos;m also an avid
+          gamer. I enjoy immersing myself in different virtual worlds and
+          experiencing the stories and challenges they offer. Whether I&apos;m
+          playing competitively or just for fun, video games provide a great way
+          to unwind and connect with friends. Balancing both sports and gaming
+          keeps my life exciting and engaging!
         </p>
       );
     },

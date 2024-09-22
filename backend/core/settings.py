@@ -17,6 +17,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEVELOPMENT_DOMAIN = os.getenv("DEVELOPMENT_DOMAIN")
+PRODUCTION_DOMAIN = os.getenv("PRODUCTION_DOMAIN")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "allauth",
     "allauth.account",
+    "allauth.headless",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "info",
@@ -54,7 +58,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # "django.middleware.csrf.CsrfViewMiddleware", TODO: Add back once testing is done
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -162,6 +166,16 @@ SOCIALACCOUNT_PROVIDERS = {
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "/users/account/verify-email/{key}",
+    "account_reset_password": "/users/account/password/reset",
+    "account_reset_password_from_key": "/users/account/password/reset/key/{key}",
+    "account_signup": "/users/signup",
+    "socialaccount_login_error": "/users/account/provider/callback",
+}
+
+HEADLESS_ONLY = False  # TODO: Change to True once finished with auth setup
 
 # Email
 # TODO: Not Working, Not Necessary, Maybe fix it

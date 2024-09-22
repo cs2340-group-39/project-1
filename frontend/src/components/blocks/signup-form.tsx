@@ -3,9 +3,7 @@ import axios from "axios";
 import { IconBrandGoogle } from "@tabler/icons-react";
 import React, {
   ChangeEvent,
-  Dispatch,
   FormEvent,
-  SetStateAction,
   useEffect,
   useRef,
   useState,
@@ -75,16 +73,11 @@ export function SignupForm() {
   ];
   const [loadingStates, setLoadingStates] = useState([...defaultLoadingStates]);
   let [errorMessages, setErrorMessages] = useState<string[]>([]);
-  const [inputs, setInputs]: [
-    {
-      userName: string | null;
-      password: string | null;
-      confirmPassword: string | null;
-    },
-    Dispatch<
-      SetStateAction<{ userName: null; password: null; confirmPassword: null }>
-    >
-  ] = useState({ userName: null, password: null, confirmPassword: null });
+  const [inputs, setInputs] = useState({
+    userName: null,
+    password: null,
+    confirmPassword: null,
+  });
   const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {

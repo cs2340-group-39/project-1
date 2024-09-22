@@ -10,9 +10,7 @@ function SignupPage(): JSX.Element {
   return (
     <>
       <AuroraBackground>
-        {/* <div className=""> */}
         <SignupForm />
-        {/* </div> */}
       </AuroraBackground>
     </>
   );

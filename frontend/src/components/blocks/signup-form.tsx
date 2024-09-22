@@ -85,6 +85,7 @@ export function SignupForm() {
       SetStateAction<{ userName: null; password: null; confirmPassword: null }>
     >
   ] = useState({ userName: null, password: null, confirmPassword: null });
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const name = event.target.name;
@@ -115,12 +116,20 @@ export function SignupForm() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/_allauth/browser/v1/auth/signup", // TODO: Lets not hardcode the domain
+        "http://127.0.0.1:8000/_allauth/browser/v1/auth/signup", // TODO: Change this, don't hardcode the domain
         payload
       );
 
-      console.log(response.data);
+      if (response.data.status === 200) {
+        setShouldRedirect(true);
+      }
     } catch (error: any) {
+      if (error.response.data.status == 409) {
+        newErrorMessages.push(
+          "You are already authenticated. Log out to create a new account."
+        );
+      }
+
       let newLoadingStates = [...defaultLoadingStates];
 
       for (error of error.response.data.errors) {
@@ -138,10 +147,17 @@ export function SignupForm() {
         newErrorMessages.push(error.message);
       }
       setLoadingStates(newLoadingStates);
+    } finally {
+      setLoading(true);
+      setErrorMessages(newErrorMessages);
     }
+  };
 
-    setLoading(true); // animation
-    setErrorMessages(newErrorMessages); // let the user know what they fucked up!
+  const handleAnimationComplete = () => {
+    if (shouldRedirect) {
+      window.location.href = "/";
+    }
+    setLoading(false);
   };
 
   return (
@@ -214,7 +230,7 @@ export function SignupForm() {
           loading={loading}
           duration={1000}
           loop={false}
-          onComplete={() => setLoading(false)}
+          onComplete={handleAnimationComplete}
         />
 
         <div className="mb-8">

@@ -7,14 +7,14 @@ import { Menu, MenuItem } from "../ui/navbar-menu";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import About from "./about";
 
-interface NavbarData {
+interface InfoNavbarData {
   className?: string;
   data: {
     userLoggedIn: boolean;
   };
 }
 
-export default function Navbar({ className, data }: NavbarData) {
+export default function InfoNavbar({ className, data }: InfoNavbarData) {
   const [active, setActive] = useState<string | null>(null);
   return (
     <div

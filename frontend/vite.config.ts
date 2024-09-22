@@ -27,6 +27,10 @@ export default defineConfig({
           __dirname,
           "src/pages/allauth-pages/allauth-signup.tsx"
         ),
+        allauthProfile: resolve(
+          __dirname,
+          "src/pages/allauth-pages/allauth-profile.tsx"
+        ),
       },
       output: {
         entryFileNames: "[name].bundle.js",

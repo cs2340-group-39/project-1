@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import Navbar from "../components/blocks/navbar";
+import InfoNavbar from "../components/blocks/info-navbar";
 import { ThemeProvider } from "../components/theme-provider";
 import { AuroraBackground } from "../components/ui/aurora-background";
 import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
@@ -64,7 +64,10 @@ function InfoPage({ data }: InfoPageData) {
           )}
         </motion.div>
       </AuroraBackground>
-      <Navbar className="top-2" data={{ userLoggedIn: data.userLoggedIn }} />
+      <InfoNavbar
+        className="top-2"
+        data={{ userLoggedIn: data.userLoggedIn }}
+      />
     </>
   );
 }

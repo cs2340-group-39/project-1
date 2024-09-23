@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps with Search</title>
+    <style>
+        /* Set the size of the map and search bar */
+        #map {
+            height: 500px;  /* Adjust height as needed */
+            width: 100%;    /* Adjust width as needed */
+        }
+        #location-search-box {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #cuisine-search-box {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<h1>Google Maps Search</h1>
+<!-- Search bar for places -->
+<label for="location-search-box"></label><input id="location-search-box" type="text" placeholder="Search for places...">
+
+<!-- Search for Cuisine and Place !-->
+<label for="cuisine-search-box"></label><input id="cuisine-search-box" type="text" placeholder="Search for cuisine type...">
+<button onclick="searchByCuisineAndLocation()">Search</button>
+
+<!-- The map will be rendered here -->
+<div id="map"></div>
+
+<!-- Load the Google Maps JavaScript API with Places Library -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
+<script>
+    let map;
+    let service;
+    let markers = [];
+    function initMap() {
+        // Define the map options
+        const mapOptions = {
+            zoom: 8
+        };
+
+        let userLocation;
+
+        // Create a new map
+        map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        service = new google.maps.places.PlacesService(map);
+        // Create a new PlacesAutocomplete instance
+        var location_input = document.getElementById('location-search-box');
+        var cuisine_input = document.getElementById('cuisine-search-box');
+        var autocomplete = new google.maps.places.Autocomplete(location_input);
+
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(location_input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(cuisine_input);
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                // Set the map's center to the user's location
+                map.setCenter(userLocation);
+            })
+        } else {
+            // Browser doesn't support Geolocation
+            handleLocationError(false, map.getCenter());
+        }
+
+        function handleLocationError(browserHasGeolocation, pos) {
+            var infoWindow = new google.maps.InfoWindow({
+                map: map,
+                position: pos,
+                content: browserHasGeolocation ?
+                    'Error: The Geolocation service failed.' :
+                    'Error: Your browser doesn\'t support geolocation.'
+            });
+        }
+
+        // Bind the autocomplete object to the map and the search box
+        autocomplete.bindTo('bounds', map);
+
+        // Add an event listener to handle the place selection
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+
+            // Clear existing markers
+            clearMarkers()
+
+            if (!place.geometry) {
+                alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            // Fit the map to the place's geometry
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(15); // Set a suitable zoom level
+            }
+
+            var currLocMarker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location,
+                title: place.name
+            });
+            currLocMarker.addListener("click", () => {
+                const infoWindow = new google.maps.InfoWindow();
+                infoWindow.setContent(place.name);
+                infoWindow.open(map, currLocMarker);
+            });
+            markers.push(currLocMarker);
+
+            // Perform the nearby search based on the selected place
+            const request = {
+                location: place.geometry.location,
+                radius: '2000', // 2 km radius
+                type: ['restaurant'],
+                keyword: cuisine_input.value // Use the cuisine input value
+            };
+            // Perform the nearby search
+            performNearbySearch(request)
+        });
+
+        cuisine_input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                clearMarkers()
+                // re-assign cuisine input and location input and autocomplete
+                cuisine_input = document.getElementById("cuisine-search-box");
+                location_input = document.getElementById("location-search-box");
+
+                // get the place from autocomplete
+                const place = autocomplete.getPlace()
+
+                // add our current location back
+                var currLocMarker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location,
+                    title: place.name
+                });
+                currLocMarker.addListener("click", () => {
+                    const infoWindow = new google.maps.InfoWindow();
+                    infoWindow.setContent(place.name);
+                    infoWindow.open(map, currLocMarker);
+                });
+
+                markers.push(currLocMarker);
+
+                if (place.geometry) {
+                    // Perform the nearby search with the current location
+                    const request = {
+                        location: place.geometry.location,
+                        radius: '2000', // 2 km radius
+                        type: ['restaurant'],
+                        keyword: cuisine_input.value // Use the cuisine input value
+                    }
+                    performNearbySearch(request);
+                } else {
+                    alert("Please select a location first.");
+                }
+            }
+        });
+
+    }
+    function performNearbySearch(request) {
+        // Clear existing markers
+        clearMarkers();
+        // Perform the nearby search
+        service.nearbySearch(request, function(results, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                results.forEach(function(place) {
+                    var locationMarker = new google.maps.Marker({
+                        map: map,
+                        position: place.geometry.location,
+                        title: place.name
+                    });
+
+                    // Add a click listener for each marker
+                    locationMarker.addListener("click", () => {
+                        const infoWindow = new google.maps.InfoWindow();
+                        infoWindow.setContent(place.name);
+                        infoWindow.open(map, locationMarker);
+                    });
+
+                    markers.push(locationMarker); // Add to markers array
+                });
+            } else {
+                console.error('Places search failed due to: ' + status);
+            }
+        });
+    }
+
+    function clearMarkers() {
+        markers.forEach(marker => marker.setMap(null));
+        markers.length = 0; // Clear the array
+    }
+
+
+    // Initialize the map when the window loads
+    window.onload = initMap;
+</script>
+</body>
+</html>

@@ -1,5 +1,24 @@
-import { AnimatePresence, motion } from "framer-motion";
-import React, { useState } from "react";
+import { AnimatePresence, motion, Variant } from "framer-motion";
+import { Menu as MenuIcon, X } from "lucide-react";
+import React, { ReactNode, useEffect, useState } from "react";
+
+type AnimationVariants = {
+  initial: Variant;
+  animate: Variant;
+  exit: Variant;
+};
+
+const mobileMenuVariants: AnimationVariants = {
+  initial: { opacity: 0, y: -20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+const desktopMenuVariants: AnimationVariants = {
+  initial: {},
+  animate: {},
+  exit: {},
+};
 
 const transition = {
   type: "spring",
@@ -11,69 +30,22 @@ const transition = {
   duration: 0.3,
 };
 
-// export const MenuItem = ({
-//   setActive,
-//   active,
-//   item,
-//   children,
-// }: {
-//   setActive: (item: string) => void;
-//   active: string | null;
-//   item: string;
-//   children?: React.ReactNode;
-// }) => {
-//   return (
-//     <div
-//       onMouseEnter={() => setActive(item)}
-//       onMouseLeave={() => setActive(item)}
-//       className="relative "
-//     >
-//       <motion.p
-//         transition={{ duration: 0.3 }}
-//         className="cursor-pointer text-black hover:opacity-[0.9] dark:text-white"
-//       >
-//         {item}
-//       </motion.p>
-//       {active !== null && (
-//         <motion.div
-//           initial={{ opacity: 0, scale: 0.85, y: 10 }}
-//           animate={{ opacity: 1, scale: 1, y: 0 }}
-//           transition={transition}
-//         >
-//           {active === item && (
-//             <div className="absolute top-[calc(100%_+_1.2rem)] left-1/2 transform -translate-x-1/2 pt-4">
-//               <motion.div
-//                 transition={transition}
-//                 layoutId="active" // layoutId ensures smooth animation
-//                 className="bg-white dark:bg-black backdrop-blur-sm rounded-2xl overflow-hidden border border-black/[0.2] dark:border-white/[0.2] shadow-xl"
-//               >
-//                 <motion.div
-//                   layout // layout ensures smooth animation
-//                   className="w-max h-full p-4"
-//                 >
-//                   {children}
-//                 </motion.div>
-//               </motion.div>
-//             </div>
-//           )}
-//         </motion.div>
-//       )}
-//     </div>
-//   );
-// };
+interface MenuItemProps {
+  setActive: (item: string | null) => void;
+  active: string | null;
+  item: string;
+  children?: ReactNode;
+  onClick?: () => void;
+}
 
-export const MenuItem = ({
+export const MenuItem: React.FC<MenuItemProps> = ({
   setActive,
   active,
   item,
   children,
-}: {
-  setActive: (item: string | null) => void;
-  active: string | null;
-  item: string;
-  children?: React.ReactNode;
+  onClick,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   return (
     <div
@@ -85,6 +57,7 @@ export const MenuItem = ({
         setActive(null);
         setIsHovered(false);
       }}
+      onClick={onClick}
       className="relative"
     >
       <motion.p
@@ -119,49 +92,65 @@ export const MenuItem = ({
   );
 };
 
-export const Menu = ({
-  setActive,
-  children,
-}: {
+interface MenuProps {
   setActive: (item: string | null) => void;
-  children: React.ReactNode;
-}) => {
-  children;
+  children: ReactNode;
+}
+
+export const Menu: React.FC<MenuProps> = ({ setActive, children }) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
   return (
-    <>
-      <nav
-        onMouseLeave={() => setActive(null)} // resets the state
-        className="relative rounded-full backdrop-blur-xl dark:bg-black/65 dark:border-white/[0.2] bg-white/65 shadow-input flex justify-center space-x-4 px-8 py-6 shadow-md border-1 border-slate-300"
-      >
-        {children}
-      </nav>
-    </>
+    <nav className="relative">
+      {isMobile ? (
+        <div className="flex justify-end p-4">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="text-black dark:text-white"
+          >
+            {isOpen ? <X size={24} /> : <MenuIcon size={24} />}
+          </button>
+        </div>
+      ) : null}
+      <AnimatePresence>
+        {(!isMobile || isOpen) && (
+          <motion.div
+            variants={isMobile ? mobileMenuVariants : desktopMenuVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={transition}
+            className={`${
+              isMobile
+                ? "flex flex-col items-center space-y-4 py-4"
+                : "flex justify-center space-x-4 px-8 py-6"
+            } rounded-2xl backdrop-blur-xl dark:bg-black/65 dark:border-white/[0.2] bg-white/65 shadow-input shadow-md border-1 border-slate-300`}
+            onMouseLeave={() => setActive(null)}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
   );
 };
 
-export const ProductItem = ({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-  href: string;
-  src: string;
-}) => {
-  return (
-    <>
-      <div>
-        <h4 className="text-xl font-bold mb-1 text-black dark:text-white">
-          {title}
-        </h4>
-        <p className="text-neutral-700 text-sm max-w-[10rem] dark:text-neutral-300">
-          {description}
-        </p>
-      </div>
-    </>
-  );
-};
+interface HoveredLinkProps {
+  children: ReactNode;
+}
 
-export const HoveredLink = ({ children }: any) => {
+export const HoveredLink: React.FC<HoveredLinkProps> = ({ children }) => {
   return <>{children}</>;
 };

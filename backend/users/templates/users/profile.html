@@ -4,19 +4,11 @@
     <meta charset="UTF-8" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'app/globals.css' %}" />
-    {% if not request.user.is_authenticated %}
     <script
       defer
       type="module"
-      src="{% static 'app/allauthSignup.bundle.js' %}"
+      src="{% static 'app/userProfile.bundle.js' %}"
     ></script>
-    {% else %}
-    <script
-      defer
-      type="module"
-      src="{% static 'app/allauthProfile.bundle.js' %}"
-    ></script>
-    {% endif %}
   </head>
 
   <body>

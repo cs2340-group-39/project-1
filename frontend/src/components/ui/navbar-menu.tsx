@@ -35,6 +35,7 @@ interface MenuItemProps {
   active: string | null;
   item: string;
   children?: ReactNode;
+  onClick?: () => void;
 }
 
 export const MenuItem: React.FC<MenuItemProps> = ({
@@ -42,6 +43,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   active,
   item,
   children,
+  onClick,
 }) => {
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
@@ -55,6 +57,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
         setActive(null);
         setIsHovered(false);
       }}
+      onClick={onClick}
       className="relative"
     >
       <motion.p
@@ -133,7 +136,7 @@ export const Menu: React.FC<MenuProps> = ({ setActive, children }) => {
               isMobile
                 ? "flex flex-col items-center space-y-4 py-4"
                 : "flex justify-center space-x-4 px-8 py-6"
-            } rounded-full backdrop-blur-xl dark:bg-black/65 dark:border-white/[0.2] bg-white/65 shadow-input shadow-md border-1 border-slate-300`}
+            } rounded-2xl backdrop-blur-xl dark:bg-black/65 dark:border-white/[0.2] bg-white/65 shadow-input shadow-md border-1 border-slate-300`}
             onMouseLeave={() => setActive(null)}
           >
             {children}
@@ -144,27 +147,6 @@ export const Menu: React.FC<MenuProps> = ({ setActive, children }) => {
   );
 };
 
-interface ProductItemProps {
-  title: string;
-  description: string;
-}
-
-export const ProductItem: React.FC<ProductItemProps> = ({
-  title,
-  description,
-}) => {
-  return (
-    <div>
-      <h4 className="text-xl font-bold mb-1 text-black dark:text-white">
-        {title}
-      </h4>
-      <p className="text-neutral-700 text-sm max-w-[10rem] dark:text-neutral-300">
-        {description}
-      </p>
-    </div>
-  );
-};
-
 interface HoveredLinkProps {
   children: ReactNode;
 }
@@ -172,28 +154,3 @@ interface HoveredLinkProps {
 export const HoveredLink: React.FC<HoveredLinkProps> = ({ children }) => {
   return <>{children}</>;
 };
-
-const Navbar: React.FC = () => {
-  const [active, setActive] = useState<string | null>(null);
-
-  return (
-    <Menu setActive={setActive}>
-      <MenuItem setActive={setActive} active={active} item="Home" />
-      <MenuItem setActive={setActive} active={active} item="About">
-        <ProductItem
-          title="About Us"
-          description="Learn more about our company and mission."
-        />
-      </MenuItem>
-      <MenuItem setActive={setActive} active={active} item="Products">
-        <ProductItem
-          title="Our Products"
-          description="Explore our range of innovative products."
-        />
-      </MenuItem>
-      <MenuItem setActive={setActive} active={active} item="Contact" />
-    </Menu>
-  );
-};
-
-export default Navbar;

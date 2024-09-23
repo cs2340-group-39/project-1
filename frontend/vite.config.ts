@@ -15,21 +15,12 @@ export default defineConfig({
       input: {
         dashboard: resolve(__dirname, "src/pages/dashboard.tsx"),
         info: resolve(__dirname, "src/pages/info.tsx"),
-        allauthLogin: resolve(
+        userLogin: resolve(__dirname, "src/pages/user-pages/user-login.tsx"),
+        userLogout: resolve(__dirname, "src/pages/user-pages/user-logout.tsx"),
+        userSignup: resolve(__dirname, "src/pages/user-pages/user-signup.tsx"),
+        userProfile: resolve(
           __dirname,
-          "src/pages/allauth-pages/allauth-login.tsx"
-        ),
-        allauthLogout: resolve(
-          __dirname,
-          "src/pages/allauth-pages/allauth-logout.tsx"
-        ),
-        allauthSignup: resolve(
-          __dirname,
-          "src/pages/allauth-pages/allauth-signup.tsx"
-        ),
-        allauthProfile: resolve(
-          __dirname,
-          "src/pages/allauth-pages/allauth-profile.tsx"
+          "src/pages/user-pages/user-profile.tsx"
         ),
       },
       output: {

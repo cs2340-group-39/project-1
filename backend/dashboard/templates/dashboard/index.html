@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'app/globals.css' %}" />
-    <script
-      defer
-      type="module"
-      src="{% static 'app/dashboard.bundle.js' %}"
-    ></script>
-  </head>
+    <head>
+        <meta charset="UTF-8" />
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'app/globals.css' %}" />
+        <script defer type="module" src="{% static 'app/dashboard.bundle.js' %}"></script>
+    </head>
 
-  <body>
-    <div id="root" data-context="{{ data }}"></div>
-  </body>
+    <body>
+        <div id="root" data-context="{{ data }}"></div>
+    </body>
 </html>

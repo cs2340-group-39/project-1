@@ -7,7 +7,7 @@ interface MapData {
 export default function Map({ apiKey }: MapData): ReactNode {
     return (
         <>
-            <div></div>
+            <p>{apiKey}</p>
         </>
     );
 }

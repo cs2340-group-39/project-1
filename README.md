@@ -12,4 +12,4 @@ To run the project, you MUST ALWAYS follow these steps:
 
 2. Next, cd out of frontend and into backend and then you can run `python manage.py runserver`.
 
-3. If you make any changes AT ALL to the frontend, to see these changes relect on the website, you must re-run `npm run build` in the frontend directory. It DOES NOT matter if the Django server is already running. Live reload DOES NOT work! Every time you make a change to the frontend, you must re-compile the staticfiles to be used by Django.
+3. If you make any changes AT ALL to the frontend, to see these changes reflect on the website, you must re-run `npm run build` in the frontend directory. It DOES NOT matter if the Django server is already running. Live reload DOES NOT work! Every time you make a change to the frontend, you must re-compile the staticfiles to be used by Django.

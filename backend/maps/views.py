@@ -8,9 +8,7 @@ def index(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return HttpResponse(f"Hello, {request.user.get_username()}, welcome to Maps")
     else:
-        return HttpResponse(
-            "Welcome to the Maps Page! Here you'll be able to see maps of restaurants"
-        )
+        return HttpResponse("Welcome to the Maps Page! Here you'll be able to see maps of restaurants")
 
 
 def maps_view(request: HttpRequest) -> HttpRequest:
@@ -18,7 +16,5 @@ def maps_view(request: HttpRequest) -> HttpRequest:
     return render(
         request,
         "maps/mapapp.html",
-        {
-            "api_key": os.getenv("GOOGLE_PLACES_API_KEY"),
-        },
+        {"api_key": os.getenv("GOOGLE_PLACES_API_KEY")},
     )

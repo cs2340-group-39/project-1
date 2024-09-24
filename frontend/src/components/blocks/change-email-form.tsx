@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import "../../globals.css";
 import { cn } from "../../lib/utils";
 import { useToast } from "../hooks/use-toast";
 import { Input } from "../ui/input";

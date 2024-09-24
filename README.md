@@ -2,7 +2,7 @@
 
 To setup this project, first ensure you have `python`, `node`, `npm`, and `npx` installed and in your PATH.
 
-First, cd into backend and create a new virtual environment and install all the requirements in `requirements.txt`
+First, cd into backend and create a new virtual environment and install all the requirements in `requirements.txt`. The command for this is `python -m venv ./venv`. To install the requirements, run `pip install -r requirements.txt`.
 
 Second, cd out of backend and then into frontend and run `npm install`. Once this command finishes, a new directory called `node_modules` should appear. This is the equivalent of `venv` for javascript and typescript
 

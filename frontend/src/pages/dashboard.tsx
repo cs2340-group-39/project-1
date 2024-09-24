@@ -1,9 +1,9 @@
-import { StrictMode } from "react";
+import { ReactElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import "../globals.css";
 
-function DashboardPage(): JSX.Element {
+function DashboardPage(): ReactElement {
     return (
         <>
             <h1>This is the Home Page.</h1>

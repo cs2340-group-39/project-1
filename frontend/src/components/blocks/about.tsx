@@ -201,6 +201,7 @@ export const CloseIcon = () => {
 const arjunSheshadriURL = new URL("./profile-pictures/arjun-sheshadri.jpeg", import.meta.url).href;
 const williamMcConnellURL = new URL("./profile-pictures/william-mcconnell.jpg", import.meta.url).href;
 const nicholasNietscheURL = new URL("./profile-pictures/nicholas-neitsche.jpg", import.meta.url).href;
+const muhammadSaadAtaURL = new URL("./profile-pictures/muhammad-saad-ata.png", import.meta.url).href;
 
 const cards = [
     {
@@ -239,7 +240,7 @@ const cards = [
     {
         description: "Developer 2",
         title: "Muhammad Saad Ata",
-        src: "https://assets.aceternity.com/demos/metallica.jpeg",
+        src: muhammadSaadAtaURL,
         ctaText: "View Bio",
         ctaLink: "#",
         content: () => {

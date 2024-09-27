@@ -12,6 +12,7 @@ interface GoogleMapsSearchData {
     apiKey: string;
 }
 
+// @ts-ignore
 interface RequiredCameraOptions extends google.maps.CameraOptions {
     center: google.maps.LatLngLiteral;
     heading: number;
@@ -38,16 +39,16 @@ const pinLocations: PinLocation[] = [
 
 const pinLabels = ["New York", "Los Angeles", "London", "Tokyo"];
 
-const cameraOptions: RequiredCameraOptions = {
-    tilt: 0,
-    heading: 0,
-    zoom: 3,
-    center: pinLocations[0],
-};
-
 export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
     const mapRef = useRef<google.maps.Map | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [selectedPin, setSelectedPin] = useState(0); // Updated to index
+    const [cameraOptions, setCameraOptions] = useState({
+        tilt: 0,
+        heading: 0,
+        zoom: 3,
+        center: pinLocations[0],
+    });
     const overlayViewsRef = useRef<ThreeJSOverlayView[]>([]);
     const modelRefs = useRef<(THREE.Group | null)[]>([]);
 
@@ -70,7 +71,7 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
                     if (textMesh) {
                         const textScaleFactor = scaleFactor * 0.05; // Adjust this multiplier to fine-tune text size
                         textMesh.scale.set(textScaleFactor, textScaleFactor, textScaleFactor);
-                        textMesh.position.y = scaleFactor * 1.5; // Adjust height based on pin size
+                        textMesh.position.y = scaleFactor * 8.5; // Adjust height based on pin size
                     }
                 }
             }
@@ -88,7 +89,7 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
                 vViewPosition = -mvPosition.xyz;
                 gl_Position = projectionMatrix * mvPosition;
             }
-        `;
+            `;
 
         const fragmentShader = `
             uniform vec3 color;
@@ -99,30 +100,24 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
                 vec3 normal = normalize(vNormal);
                 vec3 viewDir = normalize(vViewPosition);
 
-                // Improved Fresnel term using Schlick's approximation
                 float fresnel = pow(1.0 - abs(dot(viewDir, normal)), 5.0);
 
-                // Improved glossiness calculation using Blinn-Phong model
-                vec3 halfDir = normalize(viewDir + vec3(0.0, 1.0, 0.0)); // Assuming light from above
+                vec3 halfDir = normalize(viewDir + vec3(0.0, 1.0, 0.0));
                 float specAngle = max(dot(normal, halfDir), 0.0);
-                float glossiness = pow(specAngle, 64.0); // Higher shininess exponent
+                float glossiness = pow(specAngle, 64.0);
 
-                // Adjust base color for more depth and realism
                 vec3 baseColor = color * 0.8;
-
-                // Combine Fresnel and glossiness for reflected color
                 vec3 reflectedColor = mix(baseColor, vec3(1.0), fresnel * 0.8 + glossiness * 0.4);
 
-                // Adjust opacity to enhance thickness perception
                 float opacity = 0.6 + fresnel * 0.4;
 
                 gl_FragColor = vec4(reflectedColor, opacity);
             }
-        `;
+            `;
 
         return new THREE.ShaderMaterial({
             uniforms: {
-                color: { value: new THREE.Color(0x3a7ca5) }, // Darker blue color
+                color: { value: new THREE.Color(0x3a7ca5) },
             },
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
@@ -143,7 +138,6 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
             directionalLight.position.set(0, 10, 50);
             scene.add(directionalLight);
 
-            // Add a point light for extra glossiness
             const pointLight = new THREE.PointLight(0xffffff, 0.5);
             pointLight.position.set(0, 200, 0);
             scene.add(pointLight);
@@ -164,7 +158,7 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
                     const textGeometry = new TextGeometry(pinLabels[index], {
                         font: font,
                         size: 150,
-                        height: 15, // Increased depth for thickness
+                        height: 15,
                         curveSegments: 20,
                         bevelEnabled: true,
                         bevelThickness: 2,
@@ -176,8 +170,8 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
                     const glassyMaterial = createGlassyMaterial();
                     const textMesh = new THREE.Mesh(textGeometry, glassyMaterial);
 
-                    textMesh.position.set(0, 160, 0); // Slightly higher position
-                    textMesh.rotation.x = Math.PI / 4; // Rotate to face upwards
+                    textMesh.position.set(0, 160, 0);
+                    textMesh.rotation.x = Math.PI / 4;
                     scene.add(textMesh);
 
                     // Center the text
@@ -255,17 +249,47 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
 
     useEffect(() => {
         if (isLoaded && map) {
-            const tween = new Tween(cameraOptions)
-                .to({ tilt: 65, heading: 360, zoom: 18 }, 10000)
-                .easing(Easing.Quadratic.Out)
+            const targetLocation = pinLocations[selectedPin];
+
+            // First tween: Zoom out and rotate
+            const tweenOut = new Tween(cameraOptions)
+                .to({ tilt: 0, heading: 0, zoom: 5, center: cameraOptions.center }, 5000)
+                .easing(Easing.Quadratic.InOut)
                 .onUpdate(() => {
                     updateModelScale(cameraOptions.zoom);
                     map.moveCamera(cameraOptions);
-                })
-                .start();
+                    setCameraOptions(cameraOptions);
+                });
+
+            // Second tween: Move to the target location
+            const tweenMove = new Tween(cameraOptions)
+                .to({ tilt: 0, heading: 0, zoom: 5, center: targetLocation }, 5000)
+                .easing(Easing.Quadratic.InOut)
+                .onUpdate(() => {
+                    updateModelScale(cameraOptions.zoom);
+                    map.moveCamera(cameraOptions);
+                    setCameraOptions(cameraOptions);
+                });
+
+            // Third tween: Zoom in to the target location
+            const tweenIn = new Tween(cameraOptions)
+                .to({ tilt: 65, heading: 360, zoom: 18, center: targetLocation }, 5000)
+                .easing(Easing.Quadratic.InOut)
+                .onUpdate(() => {
+                    updateModelScale(cameraOptions.zoom);
+                    map.moveCamera(cameraOptions);
+                    setCameraOptions(cameraOptions);
+                });
+
+            // Chain the tweens
+            tweenOut.chain(tweenMove);
+            tweenMove.chain(tweenIn);
+            tweenOut.start();
 
             const group = new Group();
-            group.add(tween);
+            group.add(tweenOut);
+            group.add(tweenMove);
+            group.add(tweenIn);
 
             const animate = () => {
                 requestAnimationFrame(animate);
@@ -276,32 +300,62 @@ export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
                 });
             };
             animate();
+
+            // Clean up function
+            return () => {
+                tweenOut.stop();
+                tweenIn.stop();
+            };
         }
-    }, [isLoaded, map, updateModelScale]);
+    }, [isLoaded, map, updateModelScale, selectedPin]);
 
     if (!isLoaded) return <div>Loading...</div>;
 
     return (
-        <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            onLoad={onLoad}
-            onUnmount={onUnmount}
-            options={{
-                mapId: "15431d2b469f209e",
-                disableDefaultUI: false,
-                gestureHandling: "greedy",
-                rotateControl: true,
-                tiltInteractionEnabled: true,
-                keyboardShortcuts: false,
-                tilt: cameraOptions.tilt,
-                heading: cameraOptions.heading,
-                zoom: cameraOptions.zoom,
-                center: cameraOptions.center,
-                streetViewControl: false,
-                mapTypeControl: false,
-                fullscreenControl: false,
-            }}
-        />
+        <div>
+            {/* Selection Panel */}
+            <div className="pin-selection-panel" style={{ position: "absolute", top: 10, left: 10, zIndex: 1 }}>
+                {pinLabels.map((label, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setSelectedPin(index)}
+                        style={{
+                            margin: "5px",
+                            padding: "10px",
+                            backgroundColor: selectedPin === index ? "#3a7ca5" : "#fff",
+                            color: selectedPin === index ? "#fff" : "#000",
+                            border: "1px solid #ccc",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                        }}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Google Map */}
+            <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                onLoad={onLoad}
+                onUnmount={onUnmount}
+                options={{
+                    mapId: "15431d2b469f209e",
+                    disableDefaultUI: false,
+                    gestureHandling: "greedy",
+                    rotateControl: true,
+                    tiltInteractionEnabled: true,
+                    keyboardShortcuts: false,
+                    tilt: cameraOptions.tilt,
+                    heading: cameraOptions.heading,
+                    zoom: cameraOptions.zoom,
+                    center: cameraOptions.center,
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
+                }}
+            />
+        </div>
     );
 }
 

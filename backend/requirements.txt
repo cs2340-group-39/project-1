@@ -2,7 +2,6 @@ django
 django-allauth
 python-dotenv
 psycopg             # For macOS
-psycopg2            # For Windows
 psycopg2-binary     # For Windows
 dnspython
 requests

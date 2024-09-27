@@ -1,340 +1,350 @@
-// GoogleMapSearch.tsx
+import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
+import { Easing, Group, Tween } from "@tweenjs/tween.js";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Loader } from "@googlemaps/js-api-loader";
-import React, { useEffect, useRef, useState } from "react";
-
-import { Button } from "../ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collabsible";
-import { Input } from "../ui/input";
-import { Slider } from "../ui/slider";
+import { ThreeJSOverlayView } from "@googlemaps/three";
+import * as THREE from "three";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 interface GoogleMapsSearchData {
     apiKey: string;
 }
 
-export default function GoogleMapSearch({ apiKey }: GoogleMapsSearchData) {
-    const mapRef = useRef<HTMLDivElement>(null);
-    const locationInputRef = useRef<HTMLInputElement>(null);
-    const cuisineInputRef = useRef<HTMLInputElement>(null);
+interface RequiredCameraOptions extends google.maps.CameraOptions {
+    center: google.maps.LatLngLiteral;
+    heading: number;
+    tilt: number;
+    zoom: number;
+}
 
+interface PinLocation {
+    lat: number;
+    lng: number;
+}
+
+const mapContainerStyle = {
+    width: "100vw",
+    height: "100vh",
+};
+
+const pinLocations: PinLocation[] = [
+    { lat: 40.76, lng: -73.983 },
+    { lat: 34.052, lng: -118.244 },
+    { lat: 51.507, lng: -0.128 },
+    { lat: 35.682, lng: 139.759 },
+];
+
+const pinLabels = ["New York", "Los Angeles", "London", "Tokyo"];
+
+const cameraOptions: RequiredCameraOptions = {
+    tilt: 0,
+    heading: 0,
+    zoom: 3,
+    center: pinLocations[0],
+};
+
+export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
+    const mapRef = useRef<google.maps.Map | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
-    const [service, setService] = useState<google.maps.places.PlacesService | null>(null);
-    const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
-    const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
-    const [currentRating, setCurrentRating] = useState<number>(1.0);
-    const [currentRadius, setCurrentRadius] = useState<number>(1);
-    const [currentUnit, setCurrentUnit] = useState<"kilometers" | "miles">("kilometers");
-    const [locationInput, setLocationInput] = useState<string>("");
-    const [cuisineInput, setCuisineInput] = useState<string>("");
-    // @ts-ignore
-    const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
-    const [userLocation, setUserLocation] = useState<google.maps.LatLng | null>(null);
-    const [infoPanelContent, setInfoPanelContent] = useState<string>("");
-    const [showInfoPanel, setShowInfoPanel] = useState<boolean>(false);
-    const [place, setPlace] = useState<google.maps.places.PlaceResult | null>(null);
+    const overlayViewsRef = useRef<ThreeJSOverlayView[]>([]);
+    const modelRefs = useRef<(THREE.Group | null)[]>([]);
 
-    useEffect(() => {
-        const loader = new Loader({
-            apiKey: apiKey, // Replace with your API key
-            libraries: ["places"],
-        });
+    const { isLoaded } = useJsApiLoader({
+        id: "google-map-script",
+        googleMapsApiKey: apiKey,
+    });
 
-        loader.load().then(() => {
-            if (mapRef.current) {
-                const google = window.google;
-                const mapOptions = {
-                    zoom: 8,
-                    center: { lat: 0, lng: 0 },
-                };
+    const textMeshesRef = useRef<THREE.Mesh[]>([]);
 
-                const mapInstance = new google.maps.Map(mapRef.current, mapOptions);
-                setMap(mapInstance);
+    const updateModelScale = useCallback((zoom: number) => {
+        modelRefs.current.forEach((model, index) => {
+            if (model) {
+                const scaleFactor = 500000 / Math.pow(2, zoom);
+                if (scaleFactor > 10) {
+                    model.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
-                const serviceInstance = new google.maps.places.PlacesService(mapInstance);
-                setService(serviceInstance);
-
-                if (locationInputRef.current) {
-                    const autocompleteInstance = new google.maps.places.Autocomplete(locationInputRef.current);
-                    setAutocomplete(autocompleteInstance);
-
-                    autocompleteInstance.bindTo("bounds", mapInstance);
-
-                    autocompleteInstance.addListener("place_changed", () => {
-                        const selectedPlace = autocompleteInstance.getPlace();
-                        setPlace(selectedPlace);
-                        handlePlaceChanged(selectedPlace);
-                    });
-                }
-
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const currentLocation = new google.maps.LatLng(
-                                position.coords.latitude,
-                                position.coords.longitude
-                            );
-                            setUserLocation(currentLocation);
-                            mapInstance.setCenter(currentLocation);
-                        },
-                        () => {
-                            // Handle location error
-                        }
-                    );
-                } else {
-                    // Browser doesn't support Geolocation
+                    // Scale the text mesh
+                    const textMesh = textMeshesRef.current[index];
+                    if (textMesh) {
+                        const textScaleFactor = scaleFactor * 0.05; // Adjust this multiplier to fine-tune text size
+                        textMesh.scale.set(textScaleFactor, textScaleFactor, textScaleFactor);
+                        textMesh.position.y = scaleFactor * 1.5; // Adjust height based on pin size
+                    }
                 }
             }
         });
     }, []);
 
-    const handlePlaceChanged = (selectedPlace: google.maps.places.PlaceResult) => {
-        if (map && selectedPlace.geometry) {
-            // Clear existing markers
-            markers.forEach((marker) => marker.setMap(null));
-            setMarkers([]);
+    const createGlassyMaterial = () => {
+        const vertexShader = `
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
 
-            if (selectedPlace.geometry.viewport) {
-                map.fitBounds(selectedPlace.geometry.viewport);
-            } else {
-                map.setCenter(selectedPlace.geometry.location!);
-                map.setZoom(15);
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewPosition = -mvPosition.xyz;
+                gl_Position = projectionMatrix * mvPosition;
             }
+        `;
 
-            const currLocMarker = new google.maps.Marker({
-                map: map,
-                position: selectedPlace.geometry.location,
-                title: selectedPlace.name,
-            });
+        const fragmentShader = `
+            uniform vec3 color;
+            varying vec3 vNormal;
+            varying vec3 vViewPosition;
 
-            currLocMarker.addListener("click", () => {
-                const infoWindowInstance = new google.maps.InfoWindow({
-                    content: selectedPlace.name,
-                });
-                infoWindowInstance.open(map, currLocMarker);
-            });
+            void main() {
+                vec3 normal = normalize(vNormal);
+                vec3 viewDir = normalize(vViewPosition);
 
-            setMarkers((prevMarkers) => [...prevMarkers, currLocMarker]);
+                // Improved Fresnel term using Schlick's approximation
+                float fresnel = pow(1.0 - abs(dot(viewDir, normal)), 5.0);
 
-            // Perform the nearby search
-            const radiusInMeters = currentRadius * 1000 * (currentUnit === "miles" ? 1.60934 : 1);
-            const request: google.maps.places.PlaceSearchRequest = {
-                location: selectedPlace.geometry.location,
-                radius: radiusInMeters,
-                type: "restaurant",
-                keyword: cuisineInput,
-            };
-            performNearbySearch(request);
-        } else {
-            alert(`No details available for input: '${selectedPlace.name}'`);
-        }
+                // Improved glossiness calculation using Blinn-Phong model
+                vec3 halfDir = normalize(viewDir + vec3(0.0, 1.0, 0.0)); // Assuming light from above
+                float specAngle = max(dot(normal, halfDir), 0.0);
+                float glossiness = pow(specAngle, 64.0); // Higher shininess exponent
+
+                // Adjust base color for more depth and realism
+                vec3 baseColor = color * 0.8;
+
+                // Combine Fresnel and glossiness for reflected color
+                vec3 reflectedColor = mix(baseColor, vec3(1.0), fresnel * 0.8 + glossiness * 0.4);
+
+                // Adjust opacity to enhance thickness perception
+                float opacity = 0.6 + fresnel * 0.4;
+
+                gl_FragColor = vec4(reflectedColor, opacity);
+            }
+        `;
+
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                color: { value: new THREE.Color(0x3a7ca5) }, // Darker blue color
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true,
+            side: THREE.DoubleSide,
+        });
     };
 
-    const handleCuisineInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
-            handleSearch();
-        }
-    };
+    const createPin = useCallback(
+        (location: PinLocation, index: number) => {
+            const scene = new THREE.Scene();
 
-    const handleSearch = () => {
-        if ((place && place.geometry) || userLocation) {
-            const radiusInMeters = currentRadius * 1000 * (currentUnit === "miles" ? 1.60934 : 1);
-            const request: google.maps.places.PlaceSearchRequest = {
-                location: place?.geometry?.location || userLocation!,
-                radius: radiusInMeters,
-                type: "restaurant",
-                keyword: cuisineInput,
-            };
-            performNearbySearch(request);
-        } else {
-            alert("Please select a location first.");
-        }
-    };
+            // Add Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+            scene.add(ambientLight);
 
-    const performNearbySearch = (request: google.maps.places.PlaceSearchRequest) => {
-        if (service) {
-            // Clear existing markers
-            markers.forEach((marker) => marker.setMap(null));
-            setMarkers([]);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(0, 10, 50);
+            scene.add(directionalLight);
 
-            service.nearbySearch(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-                    const newMarkers: google.maps.Marker[] = [];
+            // Add a point light for extra glossiness
+            const pointLight = new THREE.PointLight(0xffffff, 0.5);
+            pointLight.position.set(0, 200, 0);
+            scene.add(pointLight);
 
-                    results.forEach((result) => {
-                        if (result.place_id) {
-                            service.getDetails({ placeId: result.place_id }, (details, status) => {
-                                if (status === google.maps.places.PlacesServiceStatus.OK && details) {
-                                    if ((details.rating || 0) >= currentRating) {
-                                        const marker = new google.maps.Marker({
-                                            map: map!,
-                                            position: details.geometry?.location,
-                                            title: details.name,
-                                            icon: {
-                                                url: new URL("icons/restaurant.png", import.meta.url).href, // Adjust the icon path
-                                                scaledSize: new google.maps.Size(40, 40),
-                                            },
-                                        });
-                                        marker.addListener("click", () => {
-                                            const contentString = createContentString(details);
-                                            const infoWindowInstance = new google.maps.InfoWindow({
-                                                content: contentString,
-                                            });
-                                            infoWindowInstance.open(map!, marker);
-                                            // Handle info panel
-                                            setInfoPanelContent(contentString);
-                                            setShowInfoPanel(true);
+            const loader = new GLTFLoader();
+            const modelUrl = "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf";
 
-                                            if (infoWindow) {
-                                                infoWindow.close();
-                                            }
-                                            setInfoWindow(infoWindowInstance);
-                                        });
-                                        newMarkers.push(marker);
-                                        setMarkers((prevMarkers) => [...prevMarkers, marker]);
-                                    }
-                                }
-                            });
-                        }
+            loader.load(modelUrl, (gltf) => {
+                gltf.scene.scale.set(10, 10, 10);
+                gltf.scene.rotation.x = 0;
+                gltf.scene.rotation.y = Math.PI;
+                scene.add(gltf.scene);
+                modelRefs.current[index] = gltf.scene;
+
+                // Create 3D text with enhanced glassy effect
+                const fontLoader = new FontLoader();
+                fontLoader.load("https://threejs.org/examples/fonts/helvetiker_bold.typeface.json", (font) => {
+                    const textGeometry = new TextGeometry(pinLabels[index], {
+                        font: font,
+                        size: 150,
+                        height: 15, // Increased depth for thickness
+                        curveSegments: 20,
+                        bevelEnabled: true,
+                        bevelThickness: 2,
+                        bevelSize: 1.5,
+                        bevelOffset: 0,
+                        bevelSegments: 5,
                     });
-                } else {
-                    console.error("Places search failed due to: " + status);
+
+                    const glassyMaterial = createGlassyMaterial();
+                    const textMesh = new THREE.Mesh(textGeometry, glassyMaterial);
+
+                    textMesh.position.set(0, 160, 0); // Slightly higher position
+                    textMesh.rotation.x = Math.PI / 4; // Rotate to face upwards
+                    scene.add(textMesh);
+
+                    // Center the text
+                    textGeometry.computeBoundingBox();
+                    const textWidth = textGeometry.boundingBox!.max.x - textGeometry.boundingBox!.min.x;
+                    textMesh.position.x = -textWidth / 2;
+
+                    // Store the text mesh reference
+                    textMeshesRef.current[index] = textMesh;
+                });
+
+                // Create ThreeJSOverlayView
+                const overlay = new ThreeJSOverlayView({
+                    map: mapRef.current!,
+                    scene: scene,
+                    anchor: { ...location, altitude: 100 },
+                    THREE: THREE,
+                });
+
+                overlayViewsRef.current.push(overlay);
+
+                // Force an update of the overlay
+                if (mapRef.current) {
+                    const currentCenter = mapRef.current.getCenter();
+                    if (currentCenter) {
+                        mapRef.current.setCenter(currentCenter);
+                    }
                 }
+
+                // Initial scale update
+                updateModelScale(mapRef.current!.getZoom()!);
             });
-        }
-    };
+        },
+        [updateModelScale]
+    );
 
-    const createContentString = (details: google.maps.places.PlaceResult): string => {
-        let contentString = `<div><strong>${details.name}</strong><br>`;
-        if (details.rating) {
-            const ratingStr = createStarRating(details.rating);
-            contentString += `Rating: ${ratingStr} <br>`;
-        }
-        if (details.formatted_address) {
-            contentString += `Address: ${details.formatted_address} <br>`;
-        }
-        if (details.formatted_phone_number) {
-            contentString += `Phone: ${details.formatted_phone_number} <br>`;
-        }
-        if (details.photos && details.photos.length > 0) {
-            contentString += `<img src="${details.photos[0].getUrl({
-                maxWidth: 300,
-                maxHeight: 300,
-            })}" alt="${details.name}" style="width:100%; height:auto;"><br>`;
-        }
-        contentString += `</div>`;
-        return contentString;
-    };
+    const onLoad = useCallback(
+        (mapInstance: google.maps.Map) => {
+            mapRef.current = mapInstance;
+            setMap(mapInstance);
 
-    const createStarRating = (rating: number): string => {
-        const roundedRating = Math.round(rating);
-        const maxStars = 5;
-        let starHTML = "";
-        for (let i = 1; i <= maxStars; i++) {
-            if (i <= roundedRating) {
-                starHTML += "★"; // Full star
-            } else {
-                starHTML += "☆"; // Empty star
-            }
+            pinLocations.forEach((location, index) => {
+                createPin(location, index);
+            });
+
+            // Add zoom change listener
+            mapInstance.addListener("zoom_changed", () => {
+                updateModelScale(mapInstance.getZoom()!);
+            });
+
+            // Add idle listener to ensure overlays are updated
+            mapInstance.addListener("idle", () => {
+                overlayViewsRef.current.forEach((overlay) => {
+                    overlay.requestRedraw();
+                });
+            });
+
+            // Add custom tilt controls
+            const tiltControlDiv = document.createElement("div");
+            // @ts-ignore
+            const tiltControl = createTiltControl(tiltControlDiv, mapInstance);
+            mapInstance.controls[google.maps.ControlPosition.TOP_RIGHT].push(tiltControlDiv);
+        },
+        [createPin, updateModelScale]
+    );
+
+    const onUnmount = useCallback(() => {
+        mapRef.current = null;
+        setMap(null);
+        overlayViewsRef.current.forEach((overlay) => {
+            overlay.setMap(null);
+        });
+        overlayViewsRef.current = [];
+    }, []);
+
+    useEffect(() => {
+        if (isLoaded && map) {
+            const tween = new Tween(cameraOptions)
+                .to({ tilt: 65, heading: 360, zoom: 18 }, 10000)
+                .easing(Easing.Quadratic.Out)
+                .onUpdate(() => {
+                    updateModelScale(cameraOptions.zoom);
+                    map.moveCamera(cameraOptions);
+                })
+                .start();
+
+            const group = new Group();
+            group.add(tween);
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                group.update();
+                // Request redraw for all overlays
+                overlayViewsRef.current.forEach((overlay) => {
+                    overlay.requestRedraw();
+                });
+            };
+            animate();
         }
-        return starHTML;
-    };
+    }, [isLoaded, map, updateModelScale]);
 
-    const toggleUnit = () => {
-        setCurrentUnit((prevUnit) => (prevUnit === "kilometers" ? "miles" : "kilometers"));
-    };
-
-    const closeInfoPanel = () => {
-        setShowInfoPanel(false);
-    };
+    if (!isLoaded) return <div>Loading...</div>;
 
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Google Maps Search</h1>
-
-            <div className="mb-4">
-                <label htmlFor="location-search-box" className="block mb-1">
-                    Location:
-                </label>
-                <Input
-                    id="location-search-box"
-                    ref={locationInputRef}
-                    placeholder="Search for places..."
-                    value={locationInput}
-                    onChange={(e) => setLocationInput(e.target.value)}
-                />
-            </div>
-
-            <div className="mb-4">
-                <label htmlFor="cuisine-search-box" className="block mb-1">
-                    Cuisine:
-                </label>
-                <Input
-                    id="cuisine-search-box"
-                    ref={cuisineInputRef}
-                    placeholder="Search for cuisine type..."
-                    value={cuisineInput}
-                    onChange={(e) => setCuisineInput(e.target.value)}
-                    onKeyDown={handleCuisineInputKeyDown}
-                />
-            </div>
-
-            {/* Filters */}
-            <div className="mb-4">
-                <Collapsible>
-                    <CollapsibleTrigger asChild>
-                        <Button variant="outline">Filter Options</Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <div className="mt-4">
-                            <label htmlFor="rating" className="block mb-1">
-                                Minimum Rating: {currentRating}
-                            </label>
-                            <Slider
-                                min={1}
-                                max={5}
-                                step={0.1}
-                                value={[currentRating]}
-                                onValueChange={(value) => setCurrentRating(value[0])}
-                            ></Slider>
-
-                            <div className="mt-4">
-                                <label htmlFor="radiusValue" className="block mb-1">
-                                    Radius:
-                                </label>
-                                <Input
-                                    id="radiusValue"
-                                    value={currentRadius}
-                                    onChange={(e) => setCurrentRadius(Number(e.target.value))}
-                                    type="number"
-                                    min={0}
-                                    max={10}
-                                    step={0.1}
-                                />
-                                <Button variant="outline" className="ml-2" onClick={toggleUnit}>
-                                    {currentUnit}
-                                </Button>
-                            </div>
-
-                            <Button className="mt-4" onClick={handleSearch}>
-                                Search
-                            </Button>
-                        </div>
-                    </CollapsibleContent>
-                </Collapsible>
-            </div>
-
-            {/* Map */}
-            <div id="map" ref={mapRef} style={{ height: "500px", width: "100%" }}></div>
-
-            {/* Info Panel */}
-            {showInfoPanel && (
-                <div className="info-panel fixed top-0 right-0 w-80 h-full bg-white border-l border-gray-300 p-4 overflow-y-auto shadow-lg z-50">
-                    <Button variant="ghost" className="absolute top-2 right-2" onClick={closeInfoPanel}>
-                        &times;
-                    </Button>
-                    <div dangerouslySetInnerHTML={{ __html: infoPanelContent }}></div>
-                </div>
-            )}
-        </div>
+        <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            onLoad={onLoad}
+            onUnmount={onUnmount}
+            options={{
+                mapId: "15431d2b469f209e",
+                disableDefaultUI: false,
+                gestureHandling: "greedy",
+                rotateControl: true,
+                tiltInteractionEnabled: true,
+                keyboardShortcuts: false,
+                tilt: cameraOptions.tilt,
+                heading: cameraOptions.heading,
+                zoom: cameraOptions.zoom,
+                center: cameraOptions.center,
+                streetViewControl: false,
+                mapTypeControl: false,
+                fullscreenControl: false,
+            }}
+        />
     );
+}
+
+function createTiltControl(controlDiv: HTMLDivElement, map: google.maps.Map) {
+    // Set CSS for the control border
+    const controlUI = document.createElement("div");
+    controlUI.style.backgroundColor = "#fff";
+    controlUI.style.border = "2px solid #fff";
+    controlUI.style.borderRadius = "3px";
+    controlUI.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    controlUI.style.cursor = "pointer";
+    controlUI.style.marginTop = "8px";
+    controlUI.style.marginRight = "8px";
+    controlUI.style.textAlign = "center";
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior
+    const controlText = document.createElement("div");
+    controlText.style.color = "rgb(25,25,25)";
+    controlText.style.fontFamily = "Roboto,Arial,sans-serif";
+    controlText.style.fontSize = "16px";
+    controlText.style.lineHeight = "38px";
+    controlText.style.paddingLeft = "5px";
+    controlText.style.paddingRight = "5px";
+    controlText.innerHTML = "Tilt +";
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners
+    controlUI.addEventListener("click", () => {
+        const currentTilt = map.getTilt() || 0;
+        const newTilt = Math.min(currentTilt + 15, 67); // Max tilt is usually 67 degrees
+        map.setTilt(newTilt);
+    });
+
+    // Add a second button for decreasing tilt
+    const decreaseTiltUI = controlUI.cloneNode(true) as HTMLDivElement;
+    const decreaseTiltText = decreaseTiltUI.querySelector("div") as HTMLDivElement;
+    decreaseTiltText.innerHTML = "Tilt -";
+    controlDiv.appendChild(decreaseTiltUI);
+
+    decreaseTiltUI.addEventListener("click", () => {
+        const currentTilt = map.getTilt() || 0;
+        const newTilt = Math.max(currentTilt - 15, 0);
+        map.setTilt(newTilt);
+    });
 }

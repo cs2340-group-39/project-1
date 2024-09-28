@@ -9,7 +9,7 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-interface GoogleMapsSearchData {
+interface MapsLegacyData {
     apiKey: string;
 }
 
@@ -40,7 +40,7 @@ const pinLocations: PinLocation[] = [
 
 const pinLabels = ["New York", "Los Angeles", "London", "Tokyo"];
 
-export default function GoogleMapsSearch({ apiKey }: GoogleMapsSearchData) {
+export default function MapsLegacy({ apiKey }: MapsLegacyData) {
     const mapRef = useRef<google.maps.Map | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [selectedPin, setSelectedPin] = useState(0); // Updated to index

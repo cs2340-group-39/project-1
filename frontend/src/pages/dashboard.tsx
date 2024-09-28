@@ -1,7 +1,7 @@
 import { ReactElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import GoogleMapsSearch from "../components/blocks/google-maps-search";
+import Maps from "../components/blocks/maps";
 import { ThemeProvider } from "../components/theme-provider";
 
 import "../globals.css";
@@ -9,14 +9,15 @@ import "../globals.css";
 interface DashboardData {
     data: {
         username: string;
-        apiKey: string;
+        googleMapsApiKey: string;
+        mapBoxAccessToken: string;
     };
 }
 
 function DashboardPage({ data }: DashboardData): ReactElement {
     return (
         <>
-            <GoogleMapsSearch apiKey={data.apiKey}></GoogleMapsSearch>
+            <Maps googleMapsApiKey={data.googleMapsApiKey} mapBoxAccessToken={data.mapBoxAccessToken} />
         </>
     );
 }

@@ -25,7 +25,9 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("_allauth/", include("allauth.headless.urls")),
     path("info/", include("info.urls")),
-    path("maps/", include("maps.urls")),  # TODO: remove maps app and merge functionality with dashboard
+    path(
+        "maps/", include("maps.urls")
+    ),  # TODO: remove maps app and merge functionality with dashboard
     path("users/", include("users.urls")),
     path("dashboard/", include("dashboard.urls")),
 ]

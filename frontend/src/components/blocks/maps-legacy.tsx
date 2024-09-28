@@ -2,6 +2,7 @@ import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 import { Easing, Group, Tween } from "@tweenjs/tween.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+// @ts-ignore
 import { ThreeJSOverlayView } from "@googlemaps/three";
 import * as THREE from "three";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";

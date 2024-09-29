@@ -8,7 +8,9 @@ import { Card, CardContent } from "../ui/card";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { LinkPreview } from "../ui/link-preview";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 
@@ -24,7 +26,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 // }
 // @ts-ignore
 const PLACES_SEARCH_API_URL = "http://127.0.0.1:8000/maps/api/search_for_restaurants";
-const LOCATION_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
+const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
 
 interface HashTable<T> {
     [key: number | string]: T;
@@ -67,14 +69,6 @@ interface Content {
     reviews: PlaceReview[];
 }
 
-// @ts-ignore
-const mockPinData: Pin[] = [
-    { lat: 40.76, lng: -73.983, label: "New York", contentId: 0 },
-    { lat: 34.052, lng: -118.244, label: "Los Angeles", contentId: 0 },
-    { lat: 51.507, lng: -0.128, label: "London", contentId: 0 },
-    { lat: 35.682, lng: 139.759, label: "Tokyo", contentId: 0 },
-];
-
 interface MapsData {
     googleMapsApiKey: string;
     mapBoxAccessToken: string;
@@ -107,7 +101,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [currentUserInfo, setCurrentUserInfo] = useState({} as UserInfo);
     const [pinData, setPinData] = useState([] as Pin[]);
     // @ts-ignore
-    const [contentData, setContentData] = useState({});
+    const [contentData, setContentData] = useState({} as HashTable<Content>);
 
     const getLightPresetByHour = (hour: number) => {
         if (hour >= 5 && hour < 8) return "dawn";
@@ -117,10 +111,10 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     };
 
     const handleSearch = async () => {
-        const locationResponse = await axios.get(LOCATION_INFO_API_URL);
-        const location = { lat: locationResponse.data.latitude, lng: locationResponse.data.longitude };
+        const userInfoResponse = await axios.get(USER_INFO_API_URL);
+        const location = { lat: userInfoResponse.data.latitude, lng: userInfoResponse.data.longitude };
 
-        setCurrentUserInfo(locationResponse.data);
+        setCurrentUserInfo(userInfoResponse.data);
 
         const payload = {
             location: location,
@@ -178,7 +172,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     useEffect(() => {
         let userInfo: UserInfo = {} as UserInfo;
         const fetchData = async () => {
-            const locationResponse = await axios.get(LOCATION_INFO_API_URL);
+            const locationResponse = await axios.get(USER_INFO_API_URL);
             setCurrentUserInfo(locationResponse.data);
             userInfo = locationResponse.data;
 
@@ -255,7 +249,13 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             if (mapRef.current.getLayer(layerId)) {
                 mapRef.current.removeLayer(layerId);
             }
-            mapRef.current.addLayer(createTextLayer(layerId, pin.label, [pin.lng, pin.lat], i * 100));
+            mapRef.current.addLayer(createTextLayer(layerId, pin.label, [pin.lng, pin.lat], i * 100 + 100));
+        });
+
+        mapRef.current.flyTo({
+            center: [pinData[0].lng, pinData[0].lat],
+            zoom: 17,
+            duration: 2000,
         });
     }, [pinData]);
 
@@ -412,6 +412,95 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     </div>
                 </CardContent>
             </Card>
+            <Sheet
+                open={selectedPin !== null}
+                onOpenChange={(open) => {
+                    if (!open) setSelectedPin(null);
+                }}
+            >
+                <SheetContent side="right" className="overflow-y-auto w-full sm:max-w-xl">
+                    {selectedPin && (
+                        <div className="space-y-6">
+                            <SheetHeader className="text-center">
+                                <SheetTitle className="text-2xl font-bold">
+                                    {contentData[selectedPin.contentId]?.placeName}
+                                </SheetTitle>
+                                <SheetDescription className="text-lg">
+                                    Rating: {contentData[selectedPin.contentId]?.rating} / 5
+                                </SheetDescription>
+                            </SheetHeader>
+
+                            {/* Display Contact Info */}
+                            <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50">
+                                <h3 className="text-xl font-semibold mb-4 text-white">Contact Information</h3>
+                                <div className="space-y-2 text-gray-300">
+                                    <p>
+                                        <span className="font-medium">Phone:</span>{" "}
+                                        {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">Address:</span>{" "}
+                                        {contentData[selectedPin.contentId]?.contactInfo.address.streetAddress},{" "}
+                                        {contentData[selectedPin.contentId]?.contactInfo.address.locality},{" "}
+                                        {contentData[selectedPin.contentId]?.contactInfo.address.region},{" "}
+                                        {contentData[selectedPin.contentId]?.contactInfo.address.countryName},{" "}
+                                        {contentData[selectedPin.contentId]?.contactInfo.address.postalCode}
+                                    </p>
+                                </div>
+                                <div className="mt-4">
+                                    <LinkPreview
+                                        url={contentData[selectedPin.contentId]?.contactInfo.googleMapsPage}
+                                        className="inline-block px-4 py-2 text-white rounded-md  bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                                    >
+                                        View on Google Maps
+                                        <BottomGradient />
+                                    </LinkPreview>
+                                </div>
+                            </div>
+
+                            {/* Display Reviews */}
+                            <div className="space-y-4">
+                                <h3 className="text-xl font-semibold text-white">Reviews</h3>
+                                {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
+                                            <div
+                                                key={index}
+                                                className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50"
+                                            >
+                                                <p className="font-semibold text-lg text-white">{review.authorName}</p>
+                                                <p className="text-yellow-400">Rating: {review.rating} / 5</p>
+                                                <p className="mt-2 text-gray-300">{review.text}</p>
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    {new Date(review.time * 1000).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg">
+                                        <p className="text-gray-300">No reviews available.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <SheetClose className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                                Close
+                                <BottomGradient />
+                            </SheetClose>
+                        </div>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     );
 }
+
+const BottomGradient = () => {
+    return (
+        <>
+            <span className="group-hover/btn:opacity-100 block transition duration-500 opacity-0 absolute h-px w-full -bottom-px inset-x-0 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
+            <span className="group-hover/btn:opacity-100 blur-sm block transition duration-500 opacity-0 absolute h-px w-1/2 mx-auto -bottom-px inset-x-10 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+        </>
+    );
+};

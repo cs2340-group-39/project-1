@@ -56,7 +56,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     if params.search_mode == "restaurant_name":
         result = gmaps.places(
             location=params.location,
-            query=f"cuisine type: {params.query}",
+            query=f"restaurant name: {params.query}",
             radius=params.radius,
         )
 

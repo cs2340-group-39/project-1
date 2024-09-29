@@ -1,13 +1,17 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { LoginForm } from "../../components/blocks/login-form";
 import { ThemeProvider } from "../../components/theme-provider";
+import { AuroraBackground } from "../../components/ui/aurora-background";
 import "../../globals.css";
 
 function LoginPage(): JSX.Element {
     return (
         <>
-            <h1>This is the Login Page.</h1>
+            <AuroraBackground>
+                <LoginForm />
+            </AuroraBackground>
         </>
     );
 }

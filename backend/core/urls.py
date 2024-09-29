@@ -22,8 +22,7 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path("", RedirectView.as_view(url="/dashboard/index/", permanent=True)),
     path("admin/", admin.site.urls),
-
-    # Removing legacy login pages, uncomment to see them again. 
+    # Removing legacy login pages, uncomment to see them again.
     path("accounts/", include("allauth.urls")),
     path("_allauth/", include("allauth.headless.urls")),
     path("info/", include("info.urls")),

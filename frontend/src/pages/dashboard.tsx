@@ -1,10 +1,9 @@
+import axios from "axios";
 import { ReactElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import axios from "axios"; 
 
 import Maps from "../components/blocks/maps";
 import { ThemeProvider } from "../components/theme-provider";
-import { Menu } from "../components/ui/navbar-menu"; // Assuming Menu is the right component
 import "../globals.css";
 
 interface DashboardData {
@@ -16,12 +15,10 @@ interface DashboardData {
 }
 
 function DashboardPage({ data }: DashboardData): ReactElement {
-
+    // @ts-ignore
     const handleLogout = async () => {
         try {
-            await axios.delete(
-                "http://127.0.0.1:8000/_allauth/browser/v1/auth/session"
-            ); // Lol this request throws a 401 every time so redirection must happen in catch block. 
+            await axios.delete("http://127.0.0.1:8000/_allauth/browser/v1/auth/session"); // Lol this request throws a 401 every time so redirection must happen in catch block.
         } catch (error) {
             window.location.replace("/users/accounts/login/");
         }
@@ -29,11 +26,11 @@ function DashboardPage({ data }: DashboardData): ReactElement {
 
     return (
         <>
-            <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1001 }}>
+            {/* <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1001 }}>
                 <Menu setActive={() => {}}>
                     <button onClick={handleLogout}>Logout</button>
                 </Menu>
-            </div>
+            </div> */}
 
             <Maps googleMapsApiKey={data.googleMapsApiKey} mapBoxAccessToken={data.mapBoxAccessToken} />
         </>
@@ -50,4 +47,3 @@ createRoot(rootElement).render(
         </ThemeProvider>
     </StrictMode>
 );
-

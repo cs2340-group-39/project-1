@@ -5,10 +5,15 @@ import * as THREE from "three";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 
+const calculateTextSize = (text: string, maxSize = 1, minSize = 0.1, referenceLength = 10) => {
+    const textLength = text.length;
+    const size = Math.max(minSize, Math.min(maxSize, maxSize * (referenceLength / textLength)));
+    return size;
+};
+
 export default function createTextLayer(
     layerId: string,
     text: string,
-    textSize: number,
     modelOrigin: [number, number],
     modelAltitude: number
 ) {
@@ -54,8 +59,8 @@ export default function createTextLayer(
             loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", (font) => {
                 const textGeometry = new TextGeometry(text, {
                     font: font,
-                    size: textSize,
-                    height: 15,
+                    size: 100,
+                    depth: 15,
                     curveSegments: 20,
                     bevelEnabled: true,
                     bevelThickness: 2,

@@ -25,11 +25,11 @@ def get_location(request: HttpRequest):
     return {
         "latitude": location["location"]["lat"],
         "longitude": location["location"]["lng"],
-        "time": current_time,
+        "hour": int(current_time),
     }
 
 
-@api.get("/search_for_restaurants")
+@api.post("/search_for_restaurants")
 def search_for_restaurants(request: HttpRequest, params: SearchParams):
     """
     Example request body:
@@ -44,7 +44,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     """
     response = []
 
-    if params.search_mode != "cuisine_type" and params.search_mode != "restaurant_name":
+    if params.search_mode not in ["cuisine_type", "restaurant_name", "location"]:
         return {"status": HTTPStatus.BAD_REQUEST, "message": "Unsupported search mode."}
 
     if params.search_mode == "cuisine_type":
@@ -57,6 +57,12 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         result = gmaps.places(
             location=params.location,
             query=f"restaurant name: {params.query}",
+            radius=params.radius,
+        )
+    if params.search_mode == "location":
+        result = gmaps.places(
+            location=params.location,
+            query=f"search for restaurants on: {params.query}",
             radius=params.radius,
         )
 
@@ -102,15 +108,19 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                     if place_result.get("opening_hours")
                     else None
                 ),
-                "reviews": [
-                    {
-                        "author_name": review["author_name"],
-                        "rating": review["rating"],
-                        "time": review["time"],
-                        "text": review["text"],
-                    }
-                    for review in place_result.get("reviews")
-                ],
+                "reviews": (
+                    [
+                        {
+                            "author_name": review["author_name"],
+                            "rating": review["rating"],
+                            "time": review["time"],
+                            "text": review["text"],
+                        }
+                        for review in place_result.get("reviews")
+                    ]
+                    if place_result.get("reviews")
+                    else []
+                ),
             }
         )
 

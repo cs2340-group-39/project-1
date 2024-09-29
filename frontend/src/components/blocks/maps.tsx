@@ -1,5 +1,6 @@
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ScenegraphLayer } from "@deck.gl/mesh-layers";
+import axios from "axios";
 import mapboxgl from "mapbox-gl";
 import { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
 import createTextLayer from "../three/create-text-layer";
@@ -23,18 +24,55 @@ import "mapbox-gl/dist/mapbox-gl.css";
 // }
 // @ts-ignore
 const PLACES_SEARCH_API_URL = "http://127.0.0.1:8000/maps/api/search_for_restaurants";
+const LOCATION_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
+
+interface HashTable<T> {
+    [key: number | string]: T;
+}
+
+interface UserInfo {
+    latitude: number;
+    longitude: number;
+    hour: number;
+}
 
 interface Pin {
     lat: number;
     lng: number;
     label: string;
+    contentId: number;
 }
 
+interface PlaceReview {
+    authorName: string;
+    rating: number;
+    text: string;
+    time: number;
+}
+
+interface Content {
+    contactInfo: {
+        address: {
+            countryName: string;
+            locality: string;
+            postalCode: string;
+            region: string;
+            streetAddress: string;
+        };
+        googleMapsPage: string;
+        phoneNumber: string;
+    };
+    placeName: string;
+    rating: number;
+    reviews: PlaceReview[];
+}
+
+// @ts-ignore
 const mockPinData: Pin[] = [
-    { lat: 40.76, lng: -73.983, label: "New York" },
-    { lat: 34.052, lng: -118.244, label: "Los Angeles" },
-    { lat: 51.507, lng: -0.128, label: "London" },
-    { lat: 35.682, lng: 139.759, label: "Tokyo" },
+    { lat: 40.76, lng: -73.983, label: "New York", contentId: 0 },
+    { lat: 34.052, lng: -118.244, label: "Los Angeles", contentId: 0 },
+    { lat: 51.507, lng: -0.128, label: "London", contentId: 0 },
+    { lat: 35.682, lng: 139.759, label: "Tokyo", contentId: 0 },
 ];
 
 interface MapsData {
@@ -65,73 +103,165 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [radius, setRadius] = useState(1000);
     const [rating, setRating] = useState(4.0);
 
-    const handleSearch = () => {
-        // Implement the search functionality here
-        console.log("Search params:", { query, searchMode, radius, rating });
-        // You would typically make an API call here using the PLACES_SEARCH_API_URL
+    // @ts-ignore
+    const [currentUserInfo, setCurrentUserInfo] = useState({} as UserInfo);
+    const [pinData, setPinData] = useState([] as Pin[]);
+    // @ts-ignore
+    const [contentData, setContentData] = useState({});
+
+    const getLightPresetByHour = (hour: number) => {
+        if (hour >= 5 && hour < 8) return "dawn";
+        if (hour >= 8 && hour < 18) return "day";
+        if (hour >= 18 && hour < 21) return "dusk";
+        return "night";
+    };
+
+    const handleSearch = async () => {
+        const locationResponse = await axios.get(LOCATION_INFO_API_URL);
+        const location = { lat: locationResponse.data.latitude, lng: locationResponse.data.longitude };
+
+        setCurrentUserInfo(locationResponse.data);
+
+        const payload = {
+            location: location,
+            search_mode: searchMode,
+            query: query,
+            radius: radius,
+            rating: rating,
+        };
+
+        // Something I learned today: Never create a get request with a body cause its fucking impossible.
+        const searchResponse = await axios.post(PLACES_SEARCH_API_URL, payload);
+
+        let newPinData: Pin[] = [];
+        let newContentData: HashTable<Content> = {};
+        let itId = 0;
+        for (const placeData of searchResponse.data) {
+            newPinData.push({
+                lat: placeData.location.latitude,
+                lng: placeData.location.longitude,
+                label: placeData.place_name,
+                contentId: itId,
+            });
+
+            newContentData[itId] = {
+                contactInfo: {
+                    address: {
+                        countryName: placeData.contact_info.address.country_name,
+                        locality: placeData.contact_info.address.locality,
+                        postalCode: placeData.contact_info.address.postal_code,
+                        region: placeData.contact_info.address.region,
+                        streetAddress: placeData.contact_info.address.street_address,
+                    },
+                    googleMapsPage: placeData.contact_info.google_maps_page,
+                    phoneNumber: placeData.contact_info.phone_number,
+                },
+                placeName: placeData.place_name,
+                rating: placeData.rating,
+                reviews: placeData.reviews.map((review: any) => {
+                    return {
+                        authorName: review.author_name,
+                        rating: review.rating,
+                        text: review.text,
+                        time: review.time,
+                    };
+                }),
+            };
+
+            itId++;
+        }
+
+        setPinData(newPinData);
+        setContentData(newContentData);
     };
 
     useEffect(() => {
-        mapboxgl.accessToken = mapBoxAccessToken;
+        let userInfo: UserInfo = {} as UserInfo;
+        const fetchData = async () => {
+            const locationResponse = await axios.get(LOCATION_INFO_API_URL);
+            setCurrentUserInfo(locationResponse.data);
+            userInfo = locationResponse.data;
 
-        mapRef.current = new mapboxgl.Map({
-            container: mapContainerRef.current!,
-            center: [mockPinData[0].lng, mockPinData[0].lat],
-            zoom: zoom,
-            pitch: 45,
-            bearing: 0,
-            antialias: true,
-        });
+            console.log(userInfo);
 
-        mapRef.current.on("style.load", () => {
-            setStyleLoaded(true);
+            mapboxgl.accessToken = mapBoxAccessToken;
 
-            let i = 0;
-            mockPinData.forEach((pin) => {
-                mapRef.current.addLayer(createTextLayer(`text-layer-${i}`, pin.label, 300, [pin.lng, pin.lat], 150));
-                i++;
-            });
-        });
-
-        mapRef.current.on("zoom", () => {
-            setZoom(mapRef.current.getZoom());
-        });
-
-        mapRef.current.once("load", () => {
-            deckOverlayRef.current = new MapboxOverlay({
-                interleaved: false,
-                layers: [
-                    new ScenegraphLayer<Pin>({
-                        id: "ScenegraphLayer",
-                        data: mockPinData,
-                        getPosition: (d: Pin) => [d.lng, d.lat, 0],
-                        getOrientation: (_: Pin) => [180, 0, 0],
-                        scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
-                        sizeScale: 30,
-                        _lighting: "pbr",
-                        pickable: true,
-                        autoHighlight: true,
-                        onClick: (info) => {
-                            if (info.object) {
-                                setSelectedPin(info.object);
-                                mapRef.current.flyTo({
-                                    center: [info.object.lng, info.object.lat],
-                                    zoom: 17,
-                                    duration: 2000,
-                                });
-                            }
-                        },
-                    }),
-                ],
+            mapRef.current = new mapboxgl.Map({
+                container: mapContainerRef.current!,
+                center: [userInfo.longitude, userInfo.latitude],
+                zoom: zoom,
+                pitch: 45,
+                bearing: 0,
+                antialias: true,
             });
 
-            mapRef.current.addControl(deckOverlayRef.current);
-        });
+            // Set the initial light preset based on the hour
+            const initialLightPreset = getLightPresetByHour(userInfo.hour);
+            setLightPreset(initialLightPreset);
 
-        return () => mapRef.current.remove();
+            mapRef.current.on("style.load", () => {
+                setStyleLoaded(true);
+                mapRef.current.setConfigProperty("basemap", "lightPreset", initialLightPreset);
+            });
+
+            mapRef.current.on("zoom", () => {
+                setZoom(mapRef.current.getZoom());
+            });
+
+            mapRef.current.once("load", () => {
+                deckOverlayRef.current = new MapboxOverlay({
+                    interleaved: false,
+                    layers: [
+                        new ScenegraphLayer<Pin>({
+                            id: "ScenegraphLayer",
+                            data: pinData,
+                            getPosition: (d: Pin) => [d.lng, d.lat, 0],
+                            getOrientation: (_: Pin) => [180, 0, 0],
+                            scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
+                            sizeScale: 30,
+                            _lighting: "pbr",
+                            pickable: true,
+                            autoHighlight: true,
+                            onClick: (info) => {
+                                if (info.object) {
+                                    setSelectedPin(info.object);
+                                    mapRef.current.flyTo({
+                                        center: [info.object.lng, info.object.lat],
+                                        zoom: 17,
+                                        duration: 2000,
+                                    });
+                                }
+                            },
+                        }),
+                    ],
+                });
+
+                mapRef.current.addControl(deckOverlayRef.current);
+            });
+
+            return () => mapRef.current.remove();
+        };
+
+        fetchData().then((result) => {
+            return result;
+        });
     }, []);
 
     useEffect(() => {
+        if (!styleLoaded) return;
+
+        pinData.forEach((pin, i) => {
+            const layerId = `text-layer-${i}`;
+            if (mapRef.current.getLayer(layerId)) {
+                mapRef.current.removeLayer(layerId);
+            }
+            mapRef.current.addLayer(createTextLayer(layerId, pin.label, [pin.lng, pin.lat], i * 100));
+        });
+    }, [pinData]);
+
+    useEffect(() => {
+        if (zoom < 6) return; // Globe gets really round here!!!
+
         if (deckOverlayRef.current) {
             // Adjust size scale to keep pins visible and not too small or too large
             const sizeScale = Math.pow(2, 20 - zoom);
@@ -141,8 +271,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 layers: [
                     new ScenegraphLayer<Pin>({
                         id: "ScenegraphLayer",
-                        data: mockPinData,
-                        getPosition: (d: Pin) => [d.lng, d.lat, sizeScale], // Apply adjusted heightScale here
+                        data: pinData,
+                        getPosition: (d: Pin) => [d.lng, d.lat, 0],
                         getOrientation: (_: Pin) => [180, 0, 0],
                         scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
                         sizeScale: sizeScale, // Apply adjusted sizeScale here
@@ -245,7 +375,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 <SelectContent>
                                     <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
                                     <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
-                                    {/* Add more search modes as needed */}
+                                    <SelectItem value="location">Location</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

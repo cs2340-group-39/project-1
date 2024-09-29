@@ -1,8 +1,8 @@
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ScenegraphLayer } from "@deck.gl/mesh-layers";
-import { TextLayer } from "@deck.gl/layers";
 import mapboxgl from "mapbox-gl";
 import { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
+import createTextLayer from "../three/create-text-layer";
 import { Card, CardContent } from "../ui/card";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -55,10 +55,17 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             zoom: zoom,
             pitch: 45,
             bearing: 0,
+            antialias: true,
         });
 
         mapRef.current.on("style.load", () => {
             setStyleLoaded(true);
+
+            let i = 0;
+            mockPinData.forEach((pin) => {
+                mapRef.current.addLayer(createTextLayer(`text-layer-${i}`, pin.label, 300, [pin.lng, pin.lat], 150));
+                i++;
+            });
         });
 
         mapRef.current.on("zoom", () => {
@@ -72,7 +79,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     new ScenegraphLayer<Pin>({
                         id: "ScenegraphLayer",
                         data: mockPinData,
-                        getPosition: (d: Pin) => [d.lng, d.lat, 500],
+                        getPosition: (d: Pin) => [d.lng, d.lat, 0],
                         getOrientation: (_: Pin) => [180, 0, 0],
                         scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
                         sizeScale: 30,
@@ -84,23 +91,11 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 setSelectedPin(info.object);
                                 mapRef.current.flyTo({
                                     center: [info.object.lng, info.object.lat],
-                                    zoom: 12,
+                                    zoom: 17,
                                     duration: 2000,
                                 });
                             }
                         },
-                    }),
-                    new TextLayer<Pin>({
-                        id: "text-layer",
-                        data: mockPinData,
-                        pickable: true,
-                        getPosition: (d) => [d.lng, d.lat, 550],
-                        getText: (d) => d.label,
-                        getSize: 32,
-                        getAngle: 0,
-                        getTextAnchor: "middle",
-                        getAlignmentBaseline: "center",
-                        getPixelOffset: [0, -60],
                     }),
                 ],
             });
@@ -122,7 +117,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     new ScenegraphLayer<Pin>({
                         id: "ScenegraphLayer",
                         data: mockPinData,
-                        getPosition: (d: Pin) => [d.lng, d.lat, sizeScale + Math.pow(5, sizeScale * 17)], // Apply adjusted heightScale here
+                        getPosition: (d: Pin) => [d.lng, d.lat, sizeScale], // Apply adjusted heightScale here
                         getOrientation: (_: Pin) => [180, 0, 0],
                         scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
                         sizeScale: sizeScale, // Apply adjusted sizeScale here
@@ -134,29 +129,18 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 setSelectedPin(info.object);
                                 mapRef.current.flyTo({
                                     center: [info.object.lng, info.object.lat],
-                                    zoom: 12,
+                                    zoom: 17,
                                     duration: 2000,
                                 });
                             }
                         },
-                    }),
-                    new TextLayer<Pin>({
-                        id: "text-layer",
-                        data: mockPinData,
-                        pickable: true,
-                        getPosition: (d) => [d.lng, d.lat, 550],
-                        getText: (d) => d.label,
-                        getSize: 32,
-                        getAngle: 0,
-                        getTextAnchor: "middle",
-                        getAlignmentBaseline: "center",
-                        getPixelOffset: [0, -60],
                     }),
                 ],
             });
         }
     }, [zoom]);
 
+    // For changing map appearance
     useEffect(() => {
         if (!styleLoaded) return;
 

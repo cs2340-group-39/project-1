@@ -46,7 +46,8 @@
     "react-router-dom": "^6.26.2",
     "react-three-map": "^0.8.2",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "threebox-plugin": "^2.2.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

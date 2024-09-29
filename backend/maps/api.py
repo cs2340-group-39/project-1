@@ -1,5 +1,7 @@
 import os
 import re
+import datetime
+import pytz
 
 from django.http import HttpRequest
 from ninja import NinjaAPI
@@ -16,10 +18,14 @@ gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
 @api.get("/get_location")
 def get_location(request: HttpRequest):
-    result = gmaps.geolocate()
+    location = gmaps.geolocate()
+    timezone_id = gmaps.timezone(location=location["location"])["timeZoneId"]
+    timezone = pytz.timezone(timezone_id)
+    current_time = datetime.datetime.now(timezone).strftime("%H")
     return {
-        "latitude": result["location"]["lat"],
-        "longitude": result["location"]["lng"],
+        "latitude": location["location"]["lat"],
+        "longitude": location["location"]["lng"],
+        "time": current_time,
     }
 
 

@@ -4,11 +4,25 @@ import mapboxgl from "mapbox-gl";
 import { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
 import createTextLayer from "../three/create-text-layer";
 import { Card, CardContent } from "../ui/card";
+import { HoverBorderGradient } from "../ui/hover-border-gradient";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 
 import "mapbox-gl/dist/mapbox-gl.css";
+
+// Example API request body
+// {
+//     "location": {"lat": 37.7749, "lng": -122.4194},
+//     "search_mode": "cuisine_type",
+//     "query": "Italian",
+//     "radius": 1000,
+//     "rating": 4.0
+// }
+// @ts-ignore
+const PLACES_SEARCH_API_URL = "http://127.0.0.1:8000/maps/api/search_for_restaurants";
 
 interface Pin {
     lat: number;
@@ -45,6 +59,17 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     // @ts-ignore
     const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
     const [zoom, setZoom] = useState(15.1);
+
+    const [query, setQuery] = useState("");
+    const [searchMode, setSearchMode] = useState("cuisine_type");
+    const [radius, setRadius] = useState(1000);
+    const [rating, setRating] = useState(4.0);
+
+    const handleSearch = () => {
+        // Implement the search functionality here
+        console.log("Search params:", { query, searchMode, radius, rating });
+        // You would typically make an API call here using the PLACES_SEARCH_API_URL
+    };
 
     useEffect(() => {
         mapboxgl.accessToken = mapBoxAccessToken;
@@ -196,6 +221,64 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 onCheckedChange={setShowTransitLabels}
                             />
                         </div>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card className="absolute bottom-4 left-4 w-64">
+                <CardContent className="p-4">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="query">Search Query</Label>
+                            <Input
+                                id="query"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Enter search query"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="searchMode">Search Mode</Label>
+                            <Select value={searchMode} onValueChange={setSearchMode}>
+                                <SelectTrigger id="searchMode">
+                                    <SelectValue placeholder="Select search mode" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
+                                    <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
+                                    {/* Add more search modes as needed */}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="radius">Radius (meters): {radius}</Label>
+                            <Slider
+                                id="radius"
+                                min={100}
+                                max={5000}
+                                step={100}
+                                value={[radius]}
+                                onValueChange={(value) => setRadius(value[0])}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="rating">Minimum Rating: {rating}</Label>
+                            <Slider
+                                id="rating"
+                                min={1}
+                                max={5}
+                                step={0.1}
+                                value={[rating]}
+                                onValueChange={(value) => setRating(value[0])}
+                            />
+                        </div>
+                        <HoverBorderGradient
+                            containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                            className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                            as="button"
+                            onClick={handleSearch}
+                        >
+                            Search
+                        </HoverBorderGradient>
                     </div>
                 </CardContent>
             </Card>

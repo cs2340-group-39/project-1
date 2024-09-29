@@ -10,3 +10,4 @@ cryptography
 ruff
 django-ninja
 googlemaps
+pytz

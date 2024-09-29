@@ -1,5 +1,5 @@
-import { useState } from "react";
 import axios from "axios";
+import { useState } from "react";
 
 import "../../globals.css";
 import { cn } from "../../lib/utils";
@@ -20,9 +20,7 @@ export default function InfoNavbar({ className, data }: InfoNavbarData) {
 
     const handleLogout = async () => {
         try {
-            await axios.delete(
-                "http://127.0.0.1:8000/_allauth/browser/v1/auth/session"
-            ); // Lol this request throws a 401 every time so redirection must happen in catch block. 
+            await axios.delete("http://127.0.0.1:8000/_allauth/browser/v1/auth/session"); // Lol this request throws a 401 every time so redirection must happen in catch block.
         } catch (error) {
             window.location.replace("/users/accounts/login/");
         }
@@ -41,8 +39,8 @@ export default function InfoNavbar({ className, data }: InfoNavbarData) {
                     GitHub
                 </LinkPreview>
                 {data.userLoggedIn ? (
-                    <button onClick={handleLogout} className="text-black">
-                    Log Out
+                    <button onClick={handleLogout} className="text-black dark:text-white">
+                        Log Out
                     </button>
                 ) : null}
             </Menu>

@@ -17,17 +17,14 @@ interface InfoNavbarData {
 
 export default function InfoNavbar({ className, data }: InfoNavbarData) {
     const [active, setActive] = useState<string | null>(null);
-    const [userLoggedIn, setUserLoggedIn] = useState(data.userLoggedIn);
 
     const handleLogout = async () => {
         try {
-            const response = await axios.post("http://127.0.0.1:8000/_allauth/browser/v1/auth/logout");
-            if (response.status === 200) {
-                setUserLoggedIn(false);
-                window.location.href = "/login"; 
-            }
+            await axios.delete(
+                "http://127.0.0.1:8000/_allauth/browser/v1/auth/session"
+            ); // Lol this request throws a 401 every time so redirection must happen in catch block. 
         } catch (error) {
-            console.error("Logout failed:", error);
+            window.location.replace("/users/accounts/login/");
         }
     };
 
@@ -43,7 +40,7 @@ export default function InfoNavbar({ className, data }: InfoNavbarData) {
                 <LinkPreview url="https://github.com/cs2340-group-39/project-1" className="text-black">
                     GitHub
                 </LinkPreview>
-                {userLoggedIn ? (
+                {data.userLoggedIn ? (
                     <button onClick={handleLogout} className="text-black">
                     Log Out
                     </button>

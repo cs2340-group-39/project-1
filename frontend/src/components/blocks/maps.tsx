@@ -123,7 +123,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         await axios.post(POST_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
 
         toast({
-            title: "Restaurant successfully added to favorites",
+            title: "Restaurant successfully added to favorites.",
             description: `This specific restaurant named ${
                 contentData[selectedPin!.contentId].placeName
             } should now be in your favorite places.`,
@@ -300,6 +300,12 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 center: [pinData[0].lng, pinData[0].lat],
                 zoom: 17,
                 duration: 2000,
+            });
+        } else {
+            toast({
+                title: "No places found for your query.",
+                description:
+                    "There were no places found for your specific query. Try chaning the query parameters and search again, or search with a different query.",
             });
         }
     }, [pinData]);

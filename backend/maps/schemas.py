@@ -7,7 +7,3 @@ class SearchParams(Schema):
     query: str
     radius: int
     rating: float
-
-
-class FavoritePlaceSchema(Schema):
-    place_id: str

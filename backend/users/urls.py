@@ -3,6 +3,8 @@ from django.urls import path
 from .api import api
 from .views import login_view, logout_view, profile_view, signup_view
 
+app_name = "users"
+
 urlpatterns = [
     path("api/", api.urls),
     path("accounts/signup/", signup_view),

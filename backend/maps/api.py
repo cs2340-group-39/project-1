@@ -10,7 +10,7 @@ import googlemaps
 
 from .schemas import SearchParams
 
-api = NinjaAPI()
+api = NinjaAPI(urls_namespace="maps")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)

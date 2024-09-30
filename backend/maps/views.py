@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
 
+# TODO: Mark for deprecation
 def maps_view(request: HttpRequest) -> HttpResponse:
     # You can pass the API key or any other necessary data here
     return render(

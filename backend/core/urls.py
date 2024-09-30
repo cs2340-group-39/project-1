@@ -24,6 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Removing legacy login pages, uncomment to see them again.
     path("accounts/", include("allauth.urls")),
+    path("accounts/", include("allauth.socialaccount.urls")),
     path("_allauth/", include("allauth.headless.urls")),
     path("info/", include("info.urls")),
     path(

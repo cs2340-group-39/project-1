@@ -2,6 +2,7 @@ import axios from "axios";
 import { ReactElement, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import DashboardDock from "../components/blocks/dashboard-dock";
 import Maps from "../components/blocks/maps";
 import { ThemeProvider } from "../components/theme-provider";
 import "../globals.css";
@@ -32,7 +33,10 @@ function DashboardPage({ data }: DashboardData): ReactElement {
                 </Menu>
             </div> */}
 
-            <Maps googleMapsApiKey={data.googleMapsApiKey} mapBoxAccessToken={data.mapBoxAccessToken} />
+            <div className="overflow-hidden">
+                <Maps googleMapsApiKey={data.googleMapsApiKey} mapBoxAccessToken={data.mapBoxAccessToken} />
+            </div>
+            <DashboardDock />
         </>
     );
 }

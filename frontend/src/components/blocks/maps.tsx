@@ -92,6 +92,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const mapRef: MutableRefObject<mapboxgl.Map> = useRef();
     const deckOverlayRef: MutableRefObject<MapboxOverlay | null> = useRef(null);
 
+    const [searchLoading, setSearchLoading] = useState(false); //true if currently searching, changes Search button text
     const [lightPreset, setLightPreset] = useState("day");
     const [showPlaceLabels, setShowPlaceLabels] = useState(true);
     const [showPOILabels, setShowPOILabels] = useState(true);
@@ -143,6 +144,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     };
 
     const handleSearch = async () => {
+        setSearchLoading(true); //change search text to Searching...
+
         const userInfoResponse = await axios.get(USER_INFO_API_URL);
         const location = {
             lat: userInfoResponse.data.latitude,
@@ -208,6 +211,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             itId++;
         }
 
+        setSearchLoading(false);
         setPinData(newPinData);
         setContentData(newContentData);
 
@@ -463,7 +467,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 as="button"
                                 onClick={handleSearch}
                             >
-                                Search
+                                { searchLoading ? "Searching..." : "Search" }
                             </HoverBorderGradient>
                         </div>
                     </CardContent>

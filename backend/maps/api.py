@@ -8,6 +8,8 @@ from ninja import NinjaAPI
 from http import HTTPStatus
 import googlemaps
 
+from .models import PlaceReview, Place
+
 from .schemas import SearchParams
 
 api = NinjaAPI(urls_namespace="maps")
@@ -85,8 +87,17 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             place_id=place["place_id"], reviews_sort="most_relevant"
         )["result"]
 
+        place_model_object, created = Place.objects.get_or_create(
+            google_place_id=place["place_id"]
+        )
+
+        custom_place_reviews = []
+        if not created:
+            custom_place_reviews = place_model_object.reviews_for_place.all()
+
         response.append(
             {
+                "place_id": place["place_id"],
                 "place_name": place["name"],
                 "contact_info": {
                     "address": parse_address(place_result["adr_address"]),
@@ -121,6 +132,15 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                     if place_result.get("reviews")
                     else []
                 ),
+                "custom_reviews": [
+                    {
+                        "author_name": custom_review.user.username,
+                        "rating": custom_review.rating,
+                        "time": custom_review.timestamp,
+                        "text": custom_review.text,
+                    }
+                    for custom_review in custom_place_reviews
+                ],
             }
         )
 

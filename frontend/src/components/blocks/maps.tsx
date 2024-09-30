@@ -1,9 +1,12 @@
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ScenegraphLayer } from "@deck.gl/mesh-layers";
 import axios from "axios";
+import { StarIcon } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 import { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
+import ToasterLayout from "../../layouts/toaster-layout";
 import createTextLayer from "../three/create-text-layer";
+import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
 import { Input } from "../ui/input";
@@ -13,8 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
+import { Textarea } from "../ui/textarea";
 
 import "mapbox-gl/dist/mapbox-gl.css";
+import { toast } from "../hooks/use-toast";
 
 // Example API request body
 // {
@@ -27,6 +32,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 // @ts-ignore
 const PLACES_SEARCH_API_URL = "http://127.0.0.1:8000/maps/api/search_for_restaurants";
 const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
+// const GET_FAVORITE_RESTAURANTS_URL = "http://127.0.0.1/users/api/get_favorite_restaurants";
+// const GET_REVIEWS_FOR_USER_URL = "http://127.0.0.1/users/api/get_reviews";
+const POST_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/add_favorite_place";
+// const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1/users/api/add_review";
 
 interface HashTable<T> {
     [key: number | string]: T;
@@ -64,9 +73,11 @@ interface Content {
         googleMapsPage: string;
         phoneNumber: string;
     };
+    placeId: string;
     placeName: string;
     rating: number;
     reviews: PlaceReview[];
+    customReviews: PlaceReview[];
 }
 
 interface MapsData {
@@ -102,6 +113,32 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [pinData, setPinData] = useState([] as Pin[]);
     // @ts-ignore
     const [contentData, setContentData] = useState({} as HashTable<Content>);
+
+    // @ts-ignore
+    const [newReview, setNewReview] = useState({ text: "", rating: 0 });
+
+    const handleSaveAsFavorite = async () => {
+        console.log("I got called");
+
+        const payload = {
+            google_place_id: contentData[selectedPin!.contentId]!.placeId,
+        };
+        const response = await axios.post(POST_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
+
+        console.log(response);
+
+        toast({
+            title: "Restaurant successfully added to favorites",
+            description: `This specific restaurant named ${
+                contentData[selectedPin!.contentId].placeName
+            } should now be in your favorite places.`,
+        });
+    };
+
+    const handleSubmitReview = async () => {
+        console.log("Submitting review:", newReview);
+        console.log("Review for placeId:", contentData[selectedPin!.contentId]?.placeId);
+    };
 
     const getLightPresetByHour = (hour: number) => {
         if (hour >= 5 && hour < 8) return "dawn";
@@ -150,6 +187,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     googleMapsPage: placeData.contact_info.google_maps_page,
                     phoneNumber: placeData.contact_info.phone_number,
                 },
+                placeId: placeData.place_id,
                 placeName: placeData.place_name,
                 rating: placeData.rating,
                 reviews: placeData.reviews.map((review: any) => {
@@ -160,6 +198,14 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         time: review.time,
                     };
                 }),
+                customReviews: placeData.custom_reviews.map((customReview: any) => {
+                    return {
+                        authorName: customReview.author_name,
+                        rating: customReview.rating,
+                        text: customReview.text,
+                        time: customReview.time,
+                    };
+                }),
             };
 
             itId++;
@@ -167,6 +213,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
 
         setPinData(newPinData);
         setContentData(newContentData);
+
+        console.log(newContentData);
     };
 
     useEffect(() => {
@@ -252,11 +300,13 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             mapRef.current.addLayer(createTextLayer(layerId, pin.label, [pin.lng, pin.lat], i * 100 + 100));
         });
 
-        mapRef.current.flyTo({
-            center: [pinData[0].lng, pinData[0].lat],
-            zoom: 17,
-            duration: 2000,
-        });
+        if (pinData.length > 0) {
+            mapRef.current.flyTo({
+                center: [pinData[0].lng, pinData[0].lat],
+                zoom: 17,
+                duration: 2000,
+            });
+        }
     }, [pinData]);
 
     useEffect(() => {
@@ -307,192 +357,243 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     }, [lightPreset, showPlaceLabels, showPOILabels, showRoadLabels, showTransitLabels]);
 
     return (
-        <div className="relative h-screen w-screen overflow-hidden">
-            {/* @ts-ignore */}
-            <div ref={mapContainerRef} className="h-full w-full" />
-            <Card className="absolute left-4 top-4 w-64">
-                <CardContent className="p-4">
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="lightPreset">Light Preset</Label>
-                            <Select value={lightPreset} onValueChange={setLightPreset}>
-                                <SelectTrigger id="lightPreset">
-                                    <SelectValue placeholder="Select light preset" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="dawn">Dawn</SelectItem>
-                                    <SelectItem value="day">Day</SelectItem>
-                                    <SelectItem value="dusk">Dusk</SelectItem>
-                                    <SelectItem value="night">Night</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="showPlaceLabels">Show place labels</Label>
-                            <Switch
-                                id="showPlaceLabels"
-                                checked={showPlaceLabels}
-                                onCheckedChange={setShowPlaceLabels}
-                            />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="showPOILabels">Show POI labels</Label>
-                            <Switch id="showPOILabels" checked={showPOILabels} onCheckedChange={setShowPOILabels} />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="showRoadLabels">Show road labels</Label>
-                            <Switch id="showRoadLabels" checked={showRoadLabels} onCheckedChange={setShowRoadLabels} />
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="showTransitLabels">Show transit labels</Label>
-                            <Switch
-                                id="showTransitLabels"
-                                checked={showTransitLabels}
-                                onCheckedChange={setShowTransitLabels}
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card className="absolute bottom-4 left-4 w-64">
-                <CardContent className="p-4">
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="query">Search Query</Label>
-                            <Input
-                                id="query"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Enter search query"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="searchMode">Search Mode</Label>
-                            <Select value={searchMode} onValueChange={setSearchMode}>
-                                <SelectTrigger id="searchMode">
-                                    <SelectValue placeholder="Select search mode" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
-                                    <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
-                                    <SelectItem value="location">Location</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="radius">Radius (meters): {radius}</Label>
-                            <Slider
-                                id="radius"
-                                min={100}
-                                max={5000}
-                                step={100}
-                                value={[radius]}
-                                onValueChange={(value) => setRadius(value[0])}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="rating">Minimum Rating: {rating}</Label>
-                            <Slider
-                                id="rating"
-                                min={1}
-                                max={5}
-                                step={0.1}
-                                value={[rating]}
-                                onValueChange={(value) => setRating(value[0])}
-                            />
-                        </div>
-                        <HoverBorderGradient
-                            containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                            className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                            as="button"
-                            onClick={handleSearch}
-                        >
-                            Search
-                        </HoverBorderGradient>
-                    </div>
-                </CardContent>
-            </Card>
-            <Sheet
-                open={selectedPin !== null}
-                onOpenChange={(open) => {
-                    if (!open) setSelectedPin(null);
-                }}
-            >
-                <SheetContent side="right" className="overflow-y-auto w-full sm:max-w-xl">
-                    {selectedPin && (
-                        <div className="space-y-6">
-                            <SheetHeader className="text-center">
-                                <SheetTitle className="text-2xl font-bold">
-                                    {contentData[selectedPin.contentId]?.placeName}
-                                </SheetTitle>
-                                <SheetDescription className="text-lg">
-                                    Rating: {contentData[selectedPin.contentId]?.rating} / 5
-                                </SheetDescription>
-                            </SheetHeader>
-
-                            {/* Display Contact Info */}
-                            <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50">
-                                <h3 className="text-xl font-semibold mb-4 text-white">Contact Information</h3>
-                                <div className="space-y-2 text-gray-300">
-                                    <p>
-                                        <span className="font-medium">Phone:</span>{" "}
-                                        {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
-                                    </p>
-                                    <p>
-                                        <span className="font-medium">Address:</span>{" "}
-                                        {contentData[selectedPin.contentId]?.contactInfo.address.streetAddress},{" "}
-                                        {contentData[selectedPin.contentId]?.contactInfo.address.locality},{" "}
-                                        {contentData[selectedPin.contentId]?.contactInfo.address.region},{" "}
-                                        {contentData[selectedPin.contentId]?.contactInfo.address.countryName},{" "}
-                                        {contentData[selectedPin.contentId]?.contactInfo.address.postalCode}
-                                    </p>
-                                </div>
-                                <div className="mt-4">
-                                    <LinkPreview
-                                        url={contentData[selectedPin.contentId]?.contactInfo.googleMapsPage}
-                                        className="inline-block px-4 py-2 text-white rounded-md  bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-                                    >
-                                        View on Google Maps
-                                        <BottomGradient />
-                                    </LinkPreview>
-                                </div>
+        <ToasterLayout>
+            <div className="relative h-screen w-screen overflow-hidden">
+                {/* @ts-ignore */}
+                <div ref={mapContainerRef} className="h-full w-full" />
+                <Card className="absolute left-4 top-4 w-64">
+                    <CardContent className="p-4">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="lightPreset">Light Preset</Label>
+                                <Select value={lightPreset} onValueChange={setLightPreset}>
+                                    <SelectTrigger id="lightPreset">
+                                        <SelectValue placeholder="Select light preset" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="dawn">Dawn</SelectItem>
+                                        <SelectItem value="day">Day</SelectItem>
+                                        <SelectItem value="dusk">Dusk</SelectItem>
+                                        <SelectItem value="night">Night</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="showPlaceLabels">Show place labels</Label>
+                                <Switch
+                                    id="showPlaceLabels"
+                                    checked={showPlaceLabels}
+                                    onCheckedChange={setShowPlaceLabels}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="showPOILabels">Show POI labels</Label>
+                                <Switch id="showPOILabels" checked={showPOILabels} onCheckedChange={setShowPOILabels} />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="showRoadLabels">Show road labels</Label>
+                                <Switch
+                                    id="showRoadLabels"
+                                    checked={showRoadLabels}
+                                    onCheckedChange={setShowRoadLabels}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="showTransitLabels">Show transit labels</Label>
+                                <Switch
+                                    id="showTransitLabels"
+                                    checked={showTransitLabels}
+                                    onCheckedChange={setShowTransitLabels}
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="absolute bottom-4 left-4 w-64">
+                    <CardContent className="p-4">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="query">Search Query</Label>
+                                <Input
+                                    id="query"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    placeholder="Enter search query"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="searchMode">Search Mode</Label>
+                                <Select value={searchMode} onValueChange={setSearchMode}>
+                                    <SelectTrigger id="searchMode">
+                                        <SelectValue placeholder="Select search mode" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
+                                        <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
+                                        <SelectItem value="location">Location</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="radius">Radius (meters): {radius}</Label>
+                                <Slider
+                                    id="radius"
+                                    min={100}
+                                    max={5000}
+                                    step={100}
+                                    value={[radius]}
+                                    onValueChange={(value) => setRadius(value[0])}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="rating">Minimum Rating: {rating}</Label>
+                                <Slider
+                                    id="rating"
+                                    min={1}
+                                    max={5}
+                                    step={0.1}
+                                    value={[rating]}
+                                    onValueChange={(value) => setRating(value[0])}
+                                />
+                            </div>
+                            <HoverBorderGradient
+                                containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                as="button"
+                                onClick={handleSearch}
+                            >
+                                Search
+                            </HoverBorderGradient>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Sheet
+                    open={selectedPin !== null}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setNewReview({ text: "", rating: 0 });
+                            setSelectedPin(null);
+                        }
+                    }}
+                >
+                    <SheetContent side="right" className="overflow-y-auto w-full sm:max-w-xl">
+                        {selectedPin && (
+                            <div className="space-y-6">
+                                <SheetHeader className="text-center">
+                                    <SheetTitle className="text-2xl font-bold">
+                                        {contentData[selectedPin.contentId]?.placeName}
+                                    </SheetTitle>
+                                    <SheetDescription className="text-lg">
+                                        Rating: {contentData[selectedPin.contentId]?.rating} / 5
+                                    </SheetDescription>
+                                </SheetHeader>
 
-                            {/* Display Reviews */}
-                            <div className="space-y-4">
-                                <h3 className="text-xl font-semibold text-white">Reviews</h3>
-                                {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
+                                {/* Display Contact Info */}
+                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50">
+                                    <h3 className="text-xl font-semibold mb-4 text-white">Contact Information</h3>
+                                    <div className="space-y-2 text-gray-300">
+                                        <p>
+                                            <span className="font-medium">Phone:</span>{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Address:</span>{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.address.streetAddress},{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.address.locality},{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.address.region},{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.address.countryName},{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.address.postalCode}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-row gap-x-8">
+                                        <LinkPreview
+                                            url={contentData[selectedPin.contentId]?.contactInfo.googleMapsPage}
+                                            className="w-fit px-4 py-2 text-white rounded-md bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                                        >
+                                            View on Google Maps
+                                            <BottomGradient />
+                                        </LinkPreview>
+                                        <Button
+                                            onClick={handleSaveAsFavorite}
+                                            className="w-fit px-4 py-2 text-white rounded-md bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                                        >
+                                            Save as Favorite
+                                            <BottomGradient />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Write a Review */}
+                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50">
+                                    <h3 className="text-xl font-semibold mb-4 text-white">Write a Review</h3>
                                     <div className="space-y-4">
-                                        {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
-                                            <div
-                                                key={index}
-                                                className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50"
-                                            >
-                                                <p className="font-semibold text-lg text-white">{review.authorName}</p>
-                                                <p className="text-yellow-400">Rating: {review.rating} / 5</p>
-                                                <p className="mt-2 text-gray-300">{review.text}</p>
-                                                <p className="text-sm text-gray-500 mt-2">
-                                                    {new Date(review.time * 1000).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        ))}
+                                        <div className="flex items-center space-x-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <StarIcon
+                                                    key={star}
+                                                    className={`w-6 h-6 cursor-pointer ${
+                                                        star <= newReview.rating ? "text-yellow-400" : "text-gray-400"
+                                                    }`}
+                                                    onClick={() => setNewReview({ ...newReview, rating: star })}
+                                                />
+                                            ))}
+                                        </div>
+                                        <Textarea
+                                            placeholder="Write your review here..."
+                                            value={newReview.text}
+                                            // @ts-ignore
+                                            onChange={(e) => setNewReview({ ...newReview, text: e.target.value })}
+                                            className="w-full p-2 text-white bg-gray-800 rounded-md"
+                                        />
+                                        <Button
+                                            onClick={handleSubmitReview}
+                                            className="w-full px-4 py-2 text-white rounded-md bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                                        >
+                                            Submit Review
+                                            <BottomGradient />
+                                        </Button>
                                     </div>
-                                ) : (
-                                    <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg">
-                                        <p className="text-gray-300">No reviews available.</p>
-                                    </div>
-                                )}
-                            </div>
+                                </div>
 
-                            <SheetClose className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                                Close
-                                <BottomGradient />
-                            </SheetClose>
-                        </div>
-                    )}
-                </SheetContent>
-            </Sheet>
-        </div>
+                                {/* Display Reviews */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xl font-semibold text-white">Reviews</h3>
+                                    {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50"
+                                                >
+                                                    <p className="font-semibold text-lg text-white">
+                                                        {review.authorName}
+                                                    </p>
+                                                    <p className="text-yellow-400">Rating: {review.rating} / 5</p>
+                                                    <p className="mt-2 text-gray-300">{review.text}</p>
+                                                    <p className="text-sm text-gray-500 mt-2">
+                                                        {new Date(review.time * 1000).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg">
+                                            <p className="text-gray-300">No reviews available.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <SheetClose className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                                    Close
+                                    <BottomGradient />
+                                </SheetClose>
+                            </div>
+                        )}
+                    </SheetContent>
+                </Sheet>
+            </div>
+        </ToasterLayout>
     );
 }
 

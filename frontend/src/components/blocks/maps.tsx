@@ -563,7 +563,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             as="button"
                                             onClick={handleSubmitReview}
                                         >
-                                            Search
+                                            Submit Review
                                         </HoverBorderGradient>
                                     </div>
                                 </div>

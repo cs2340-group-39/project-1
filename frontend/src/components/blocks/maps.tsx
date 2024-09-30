@@ -6,7 +6,6 @@ import mapboxgl from "mapbox-gl";
 import { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
 import ToasterLayout from "../../layouts/toaster-layout";
 import createTextLayer from "../three/create-text-layer";
-import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
 import { Input } from "../ui/input";
@@ -118,14 +117,10 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [newReview, setNewReview] = useState({ text: "", rating: 0 });
 
     const handleSaveAsFavorite = async () => {
-        console.log("I got called");
-
         const payload = {
             google_place_id: contentData[selectedPin!.contentId]!.placeId,
         };
-        const response = await axios.post(POST_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
-
-        console.log(response);
+        await axios.post(POST_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
 
         toast({
             title: "Restaurant successfully added to favorites",
@@ -149,7 +144,10 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
 
     const handleSearch = async () => {
         const userInfoResponse = await axios.get(USER_INFO_API_URL);
-        const location = { lat: userInfoResponse.data.latitude, lng: userInfoResponse.data.longitude };
+        const location = {
+            lat: userInfoResponse.data.latitude,
+            lng: userInfoResponse.data.longitude,
+        };
 
         setCurrentUserInfo(userInfoResponse.data);
 
@@ -161,7 +159,6 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             rating: rating,
         };
 
-        // Something I learned today: Never create a get request with a body cause its fucking impossible.
         const searchResponse = await axios.post(PLACES_SEARCH_API_URL, payload);
 
         let newPinData: Pin[] = [];
@@ -223,8 +220,6 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             const locationResponse = await axios.get(USER_INFO_API_URL);
             setCurrentUserInfo(locationResponse.data);
             userInfo = locationResponse.data;
-
-            console.log(userInfo);
 
             mapboxgl.accessToken = mapBoxAccessToken;
 
@@ -489,9 +484,11 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 </SheetHeader>
 
                                 {/* Display Contact Info */}
-                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50">
-                                    <h3 className="text-xl font-semibold mb-4 text-white">Contact Information</h3>
-                                    <div className="space-y-2 text-gray-300">
+                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                    <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
+                                        Contact Information
+                                    </h3>
+                                    <div className="space-y-2 text-black dark:text-white">
                                         <p>
                                             <span className="font-medium">Phone:</span>{" "}
                                             {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
@@ -509,33 +506,42 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     <div className="mt-4 flex flex-row gap-x-8">
                                         <LinkPreview
                                             url={contentData[selectedPin.contentId]?.contactInfo.googleMapsPage}
-                                            className="w-fit px-4 py-2 text-white rounded-md bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                                            className="w-fit px-4 py-2 text-black dark:text-white rounded-md"
                                         >
                                             View on Google Maps
-                                            <BottomGradient />
                                         </LinkPreview>
-                                        <Button
+                                        <HoverBorderGradient
+                                            containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                            className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                            as="button"
                                             onClick={handleSaveAsFavorite}
-                                            className="w-fit px-4 py-2 text-white rounded-md bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                                         >
                                             Save as Favorite
-                                            <BottomGradient />
-                                        </Button>
+                                        </HoverBorderGradient>
                                     </div>
                                 </div>
 
                                 {/* Write a Review */}
-                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50">
-                                    <h3 className="text-xl font-semibold mb-4 text-white">Write a Review</h3>
+                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                    <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
+                                        Write a Review
+                                    </h3>
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-1">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <StarIcon
                                                     key={star}
                                                     className={`w-6 h-6 cursor-pointer ${
-                                                        star <= newReview.rating ? "text-yellow-400" : "text-gray-400"
+                                                        star <= newReview.rating
+                                                            ? "text-yellow-400"
+                                                            : "text-black dark:text-white"
                                                     }`}
-                                                    onClick={() => setNewReview({ ...newReview, rating: star })}
+                                                    onClick={() =>
+                                                        setNewReview({
+                                                            ...newReview,
+                                                            rating: star,
+                                                        })
+                                                    }
                                                 />
                                             ))}
                                         </div>
@@ -543,50 +549,55 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             placeholder="Write your review here..."
                                             value={newReview.text}
                                             // @ts-ignore
-                                            onChange={(e) => setNewReview({ ...newReview, text: e.target.value })}
-                                            className="w-full p-2 text-white bg-gray-800 rounded-md"
+                                            onChange={(e) =>
+                                                setNewReview({
+                                                    ...newReview,
+                                                    text: e.target.value,
+                                                })
+                                            }
+                                            className="w-full p-2 text-white bg-black rounded-md"
                                         />
-                                        <Button
+                                        <HoverBorderGradient
+                                            containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                            className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                            as="button"
                                             onClick={handleSubmitReview}
-                                            className="w-full px-4 py-2 text-white rounded-md bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                                         >
-                                            Submit Review
-                                            <BottomGradient />
-                                        </Button>
+                                            Search
+                                        </HoverBorderGradient>
                                     </div>
                                 </div>
 
                                 {/* Display Reviews */}
                                 <div className="space-y-4">
-                                    <h3 className="text-xl font-semibold text-white">Reviews</h3>
+                                    <h3 className="text-xl font-semibold text-black dark:text-white">Reviews</h3>
                                     {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
                                         <div className="space-y-4">
                                             {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
                                                 <div
                                                     key={index}
-                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg animate-shimmer rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50"
+                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
                                                 >
-                                                    <p className="font-semibold text-lg text-white">
+                                                    <p className="font-semibold text-lg text-black dark:text-white">
                                                         {review.authorName}
                                                     </p>
                                                     <p className="text-yellow-400">Rating: {review.rating} / 5</p>
-                                                    <p className="mt-2 text-gray-300">{review.text}</p>
-                                                    <p className="text-sm text-gray-500 mt-2">
+                                                    <p className="mt-2 text-black dark:text-white">{review.text}</p>
+                                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
                                                         {new Date(review.time * 1000).toLocaleDateString()}
                                                     </p>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg">
-                                            <p className="text-gray-300">No reviews available.</p>
+                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
+                                            <p className="text-black dark:text-white">No reviews available.</p>
                                         </div>
                                     )}
                                 </div>
 
                                 <SheetClose className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
                                     Close
-                                    <BottomGradient />
                                 </SheetClose>
                             </div>
                         )}
@@ -596,12 +607,3 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         </ToasterLayout>
     );
 }
-
-const BottomGradient = () => {
-    return (
-        <>
-            <span className="group-hover/btn:opacity-100 block transition duration-500 opacity-0 absolute h-px w-full -bottom-px inset-x-0 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-            <span className="group-hover/btn:opacity-100 blur-sm block transition duration-500 opacity-0 absolute h-px w-1/2 mx-auto -bottom-px inset-x-10 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-        </>
-    );
-};

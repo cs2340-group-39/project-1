@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -29,9 +28,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "favorite_places",
-                    models.ManyToManyField(
-                        related_name="favorited_by", to="maps.place"
-                    ),
+                    models.ManyToManyField(related_name="favorited_by", to="maps.place"),
                 ),
                 (
                     "user",

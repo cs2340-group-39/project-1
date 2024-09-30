@@ -2,13 +2,13 @@
 
 import django.core.validators
 import django.db.models.deletion
-import maps.models
 from django.conf import settings
 from django.db import migrations, models
 
+import maps.models
+
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -57,9 +57,7 @@ class Migration(migrations.Migration):
                 ("timestamp", models.DateTimeField(auto_now_add=True)),
                 (
                     "place",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="maps.place"
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="maps.place"),
                 ),
                 (
                     "user",

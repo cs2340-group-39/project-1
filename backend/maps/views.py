@@ -10,5 +10,5 @@ def maps_view(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "maps/mapapp.html",
-        {"api_key": os.getenv("GOOGLE_PLACES_API_KEY")},
+        {"api_key": os.getenv("GOOGLE_API_KEY")},
     )

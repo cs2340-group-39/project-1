@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("maps", "0003_alter_place_reviews"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

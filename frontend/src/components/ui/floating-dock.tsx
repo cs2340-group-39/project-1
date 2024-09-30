@@ -1,9 +1,3 @@
-/**
- * Note: Use position fixed according to your needs
- * Desktop navbar is better positioned at the bottom
- * Mobile navbar is better positioned at bottom right.
- **/
-
 import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
 import { AnimatePresence, MotionValue, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useRef, useState } from "react";
@@ -54,26 +48,35 @@ const FloatingDockMobile = ({
                                         delay: idx * 0.05,
                                     },
                                 }}
-                                transition={{ delay: (items.length - 1 - idx) * 0.05 }}
+                                transition={{
+                                    delay: (items.length - 1 - idx) * 0.05,
+                                }}
                             >
                                 <a
                                     href={item.href}
                                     key={item.title}
-                                    className="h-10 w-10 rounded-full bg-gray-50/75 dark:bg-neutral-900/75 flex items-center justify-center backdrop-blur-2xl border-2 border-zinc-500"
+                                    className="h-10 w-10 rounded-full bg-gray-50/75 dark:bg-neutral-900/75 flex items-center justify-center backdrop-blur-2xl border-2 border-zinc-500 shadow-lg shadow-zinc-300 dark:shadow-neutral-600"
                                 >
-                                    <div className="h-4 w-4">{item.icon}</div>
+                                    <div className="h-4 w-4 text-white [&>*]:text-white [&>*]:stroke-white [&>*]:fill-none">
+                                        {item.icon}
+                                    </div>
                                 </a>
                             </motion.div>
                         ))}
                     </motion.div>
                 )}
             </AnimatePresence>
-            <button
+            <motion.button
                 onClick={() => setOpen(!open)}
-                className="h-10 w-10 rounded-full flex items-center justify-center animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-50"
+                animate={{ rotate: open ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+                className="relative h-10 w-10 rounded-full overflow-hidden shadow-2xl shadow-zinc-300 dark:shadow-zinc-600"
             >
-                <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
-            </button>
+                <div className="absolute inset-0 border-2 border-zinc-500 rounded-full animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%]" />
+                <div className="relative z-10 h-full w-full flex items-center justify-center">
+                    <IconLayoutNavbarCollapse className="h-5 w-5 text-white [&>*]:text-white [&>*]:stroke-white [&>*]:fill-none" />
+                </div>
+            </motion.button>
         </div>
     );
 };
@@ -91,7 +94,7 @@ const FloatingDockDesktop = ({
             onMouseMove={(e) => mouseX.set(e.pageX)}
             onMouseLeave={() => mouseX.set(Infinity)}
             className={cn(
-                "mx-auto hidden md:flex h-16 gap-4 items-end  rounded-2xl bg-gray-50/75 dark:bg-neutral-900/75 px-4 pb-3 backdrop-blur-2xl border-2 border-zinc-500",
+                "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl bg-gray-50/75 dark:bg-neutral-900/75 px-4 pb-3 backdrop-blur-2xl border-2 border-zinc-500",
                 className
             )}
         >
@@ -157,16 +160,16 @@ function IconContainer({
                 style={{ width, height }}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                className="aspect-square rounded-full flex items-center justify-center relative"
+                className="aspect-square rounded-full flex items-center justify-center relative shadow-md shadow-gray-300 dark:shadow-neutral-700"
             >
                 {/* Shimmer background */}
-                <div className="absolute inset-0 rounded-full border-2 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%]" />
+                <div className="absolute inset-0 rounded-full border-2 shadow-zinc-300 dark:shadow-zinc-600 border-zinc-500 text-white animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%]" />
 
                 {/* Icon container */}
                 <div className="relative z-10 flex items-center justify-center w-full h-full">
                     <motion.div
                         style={{ width: widthIcon, height: heightIcon }}
-                        className="flex items-center justify-center"
+                        className="flex items-center justify-center text-white [&>*]:text-white [&>*]:stroke-white [&>*]:fill-none"
                     >
                         {icon}
                     </motion.div>
@@ -178,7 +181,7 @@ function IconContainer({
                             initial={{ opacity: 0, y: 10, x: "-50%" }}
                             animate={{ opacity: 1, y: 0, x: "-50%" }}
                             exit={{ opacity: 0, y: 2, x: "-50%" }}
-                            className="px-2 py-0.5 whitespace-pre rounded-md bg-gray-100 border dark:bg-neutral-800 dark:border-neutral-900 dark:text-white border-gray-200 text-neutral-700 absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs"
+                            className="px-2 py-0.5 whitespace-pre rounded-md bg-gray-100 border dark:bg-neutral-800 dark:border-neutral-900 dark:text-white border-gray-200 text-neutral-700 absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs shadow-sm shadow-gray-200 dark:shadow-neutral-900"
                         >
                             {title}
                         </motion.div>

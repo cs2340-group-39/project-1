@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .views import maps_view
 from .api import api
+from .views import maps_view
 
 app_name = "maps"
 

@@ -1,15 +1,13 @@
 from datetime import datetime
-
-from django.http import HttpRequest
-from ninja import NinjaAPI
 from http import HTTPStatus
+
 from django.forms.models import model_to_dict
-from django import db
-
+from django.http import HttpRequest
 from maps.models import Place, PlaceReview
+from ninja import NinjaAPI
 
-from .schemas import PlaceSchema, PlaceReviewSchema
 from .models import UserProfile
+from .schemas import PlaceReviewSchema, PlaceSchema
 
 api = NinjaAPI(urls_namespace="users")
 
@@ -17,10 +15,7 @@ api = NinjaAPI(urls_namespace="users")
 @api.get("/get_favorite_places")
 def get_favorite_places(request: HttpRequest):
     if not request.user.is_authenticated:
-        return {
-            "status": HTTPStatus.FORBIDDEN,
-            "msg": "User must be authenticated for this method.",
-        }
+        return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
 
     profile = UserProfile.objects.get(user=request.user)
 
@@ -48,8 +43,7 @@ def add_favorite_place(request: HttpRequest, params: PlaceSchema):
     place, created = Place.objects.get_or_create(google_place_id=params.google_place_id)
 
     if model_to_dict(place).get("google_place_id") in [
-        favorite_place.get("google_place_id")
-        for favorite_place in profile.favorite_places
+        favorite_place.get("google_place_id") for favorite_place in profile.favorite_places
     ]:
         return {
             "status": HTTPStatus.BAD_REQUEST,
@@ -72,10 +66,7 @@ def add_favorite_place(request: HttpRequest, params: PlaceSchema):
 @api.get("/get_reviews")
 def get_reviews(request: HttpRequest):
     if not request.user.is_authenticated:
-        return {
-            "status": HTTPStatus.FORBIDDEN,
-            "msg": "User must be authenticated for this method.",
-        }
+        return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
 
     return {
         "status": HTTPStatus.OK,
@@ -95,21 +86,11 @@ def get_reviews(request: HttpRequest):
 @api.post("/add_favorite_place")
 def add_review(request: HttpRequest, params: PlaceReviewSchema):
     if not request.user.is_authenticated:
-        return {
-            "status": HTTPStatus.FORBIDDEN,
-            "msg": "User must be authenticated for this method.",
-        }
+        return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
 
-    place, created = Place.objects.get_or_create(
-        google_place_id=params.place.google_place_id
-    )
-
+    place, created = Place.objects.get_or_create(google_place_id=params.place.google_place_id)
     place_review = PlaceReview.objects.create(
-        place=place,
-        user=request.user,
-        rating=params.rating,
-        text=params.text,
-        timestamp=datetime.now(),
+        place=place, user=request.user, rating=params.rating, text=params.text, timestamp=datetime.now()
     )
 
     return {

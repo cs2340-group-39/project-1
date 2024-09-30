@@ -477,7 +477,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         }
                     }}
                 >
-                    <SheetContent side="right" className="overflow-y-auto w-full sm:max-w-xl">
+                    <SheetContent side="right" className="overflow-y-auto w-[30vw] sm:max-w-xl">
                         {selectedPin && (
                             <div className="space-y-6">
                                 <SheetHeader className="text-center">

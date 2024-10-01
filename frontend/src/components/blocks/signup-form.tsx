@@ -1,6 +1,5 @@
 import axios from "axios";
 
-import { IconBrandGoogle } from "@tabler/icons-react";
 import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { Input } from "../ui/input";
@@ -39,6 +38,14 @@ const ErrorMessages: React.FC<ErrorMessagesProps> = ({ messages }) => {
 export function SignupForm() {
     const [loading, setLoading] = useState(false);
     const defaultLoadingStates = [
+        {
+            text: "You cannot sign up with an email that already in use.",
+            success: true,
+        },
+        {
+            text: "You cannot sign up with a username that already in use.",
+            success: true,
+        },
         {
             text: "Your password can't be too similar to your other personal information.",
             success: true,
@@ -88,6 +95,7 @@ export function SignupForm() {
         }
 
         const payload = {
+            email: inputs.email,
             username: inputs.userName,
             password: inputs.password,
         };
@@ -111,13 +119,13 @@ export function SignupForm() {
             for (error of error.response.data.errors) {
                 switch (error.code) {
                     case "password_too_short":
-                        newLoadingStates[1].success = false;
+                        newLoadingStates[3].success = false;
                         break;
                     case "password_too_common":
-                        newLoadingStates[2].success = false;
+                        newLoadingStates[4].success = false;
                         break;
                     case "password_entirely_numeric":
-                        newLoadingStates[3].success = false;
+                        newLoadingStates[5].success = false;
                         break;
                 }
                 newErrorMessages.push(error.message);
@@ -172,6 +180,7 @@ export function SignupForm() {
                         placeholder="johndoe@gatech.edu"
                         type="email"
                         onChange={handleChange}
+                        required={true}
                     />
                 </LabelInputContainer>
                 <LabelInputContainer className="mb-8">
@@ -219,10 +228,10 @@ export function SignupForm() {
                     </button>
                 </div>
 
-                <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
+                {/* <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" /> */}
 
-                <div className="flex flex-col space-y-8">
-                    {/* TODO: Dynamically generate socialaccount providers */}
+                {/* <div className="flex flex-col space-y-8">
+                   
                     <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
                         You may choose to sign up with one of the below social account providers.
                     </p>
@@ -234,7 +243,7 @@ export function SignupForm() {
                         <span className="text-neutral-700 dark:text-neutral-300 text-sm">Google</span>
                         <BottomGradient />
                     </button>
-                </div>
+                </div> */}
             </form>
         </div>
     );

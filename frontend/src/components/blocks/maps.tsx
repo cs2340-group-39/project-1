@@ -104,20 +104,18 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     // @ts-ignore
     const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
     const [zoom, setZoom] = useState(15.1);
-
     const [query, setQuery] = useState("");
     const [searchMode, setSearchMode] = useState("cuisine_type");
     const [radius, setRadius] = useState(1000);
     const [rating, setRating] = useState(4.0);
-
     // @ts-ignore
     const [currentUserInfo, setCurrentUserInfo] = useState({} as UserInfo);
     const [pinData, setPinData] = useState([] as Pin[]);
     // @ts-ignore
     const [contentData, setContentData] = useState({} as HashTable<Content>);
-
     // @ts-ignore
     const [newReview, setNewReview] = useState({ text: "", rating: 0 });
+    const [errorMessages, setErrorMessages] = useState([] as string[]);
 
     const handleSaveAsFavorite = async () => {
         const payload = {
@@ -164,8 +162,21 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     };
 
     const handleSubmitReview = async () => {
-        console.log("Submitting review:", newReview);
-        console.log("Review for placeId:", contentData[selectedPin!.contentId]?.placeId);
+        let newErrorMessages: string[] = [];
+
+        // First validate the data
+        if (newReview.text.length > 500) {
+            newErrorMessages.push("Your review is too long, please keep it under 500 characters.");
+        }
+
+        if (newReview.rating == 0) {
+            newErrorMessages.push("Please select a rating.");
+        }
+
+        if (newErrorMessages.length > 0) {
+            setErrorMessages(newErrorMessages);
+            return;
+        }
 
         const payload = {
             place: {
@@ -324,7 +335,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     interleaved: false,
                     layers: [
                         new ScenegraphLayer<Pin>({
-                            id: "ScenegraphLayer",
+                            id: "ScenegraphLayer1",
                             data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
                             getPosition: (d: Pin) => [d.lng, d.lat, 0],
                             getOrientation: (_: Pin) => [180, 0, 0],
@@ -345,7 +356,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                             },
                         }),
                         new ScenegraphLayer<Pin>({
-                            id: "ScenegraphLayer",
+                            id: "ScenegraphLayer2",
                             data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
                             getPosition: (d: Pin) => [d.lng, d.lat, 0],
                             getOrientation: (_: Pin) => [180, 0, 0],
@@ -400,7 +411,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             toast({
                 title: "No places found for your query.",
                 description:
-                    "There were no places found for your specific query. Try chaning the query parameters and search again, or search with a different query.",
+                    "There were no places found for your specific query. Try changing the query parameters and search again, or search with a different query.",
             });
         }
     }, [pinData]);
@@ -416,7 +427,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 interleaved: false,
                 layers: [
                     new ScenegraphLayer<Pin>({
-                        id: "ScenegraphLayer",
+                        id: "ScenegraphLayer1",
                         data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
                         getPosition: (d: Pin) => [d.lng, d.lat, 0],
                         getOrientation: (_: Pin) => [180, 0, 0],
@@ -437,7 +448,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         },
                     }),
                     new ScenegraphLayer<Pin>({
-                        id: "ScenegraphLayer",
+                        id: "ScenegraphLayer2",
                         data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
                         getPosition: (d: Pin) => [d.lng, d.lat, 0],
                         getOrientation: (_: Pin) => [180, 0, 0],
@@ -579,7 +590,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 as="button"
                                 onClick={handleSearch}
                             >
-                                { searchLoading ? "Searching..." : "Search" }
+                                {searchLoading ? "Searching..." : "Search"}
                             </HoverBorderGradient>
                         </div>
                     </CardContent>
@@ -588,6 +599,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     open={selectedPin !== null}
                     onOpenChange={(open) => {
                         if (!open) {
+                            setErrorMessages([]);
                             setNewReview({ text: "", rating: 0 });
                             setSelectedPin(null);
                         }
@@ -660,6 +672,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         Write a Review
                                     </h3>
                                     <div className="space-y-4">
+                                        <ErrorMessages messages={errorMessages} />
                                         <div className="flex items-center space-x-1">
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <StarIcon
@@ -776,3 +789,31 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         </ToasterLayout>
     );
 }
+
+interface ErrorMessagesProps {
+    messages: string[];
+}
+
+const ErrorMessages: React.FC<ErrorMessagesProps> = ({ messages }) => {
+    const [height, setHeight] = useState<number>(0);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (ref.current) {
+            const newHeight = messages.length > 0 ? ref.current.scrollHeight : 0;
+            setHeight(newHeight);
+        }
+    }, [messages]);
+
+    return messages.length > 0 ? (
+        <div className="transition-all duration-300 ease-in-out" style={{ height: height }}>
+            <div ref={ref} className="bg-red-50 dark:bg-red-900/10 rounded-lg p-4 my-4">
+                {messages.map((message, index) => (
+                    <p key={index} className="text-red-600 dark:text-red-400 mb-2 last:mb-0">
+                        {message}
+                    </p>
+                ))}
+            </div>
+        </div>
+    ) : null;
+};

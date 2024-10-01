@@ -202,6 +202,7 @@ const arjunSheshadriURL = new URL("./profile-pictures/arjun-sheshadri.jpeg", imp
 const williamMcConnellURL = new URL("./profile-pictures/william-mcconnell.jpg", import.meta.url).href;
 const nicholasNietscheURL = new URL("./profile-pictures/nicholas-neitsche.jpg", import.meta.url).href;
 const muhammadSaadAtaURL = new URL("./profile-pictures/muhammad-saad-ata.png", import.meta.url).href;
+const johnnyPhanURL = new URL("./profile-pictures/johnny-phan.jpg", import.meta.url).href;
 
 const cards = [
     {
@@ -257,25 +258,23 @@ const cards = [
     },
     {
         description: "Developer 3",
-        title: "Johnny Pham",
-        src: "https://assets.aceternity.com/demos/led-zeppelin.jpeg",
+        title: "Johnny Phan",
+        src: johnnyPhanURL,
         ctaText: "View Bio",
         ctaLink: "#",
         content: () => {
             return (
                 <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
-                    et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                    aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-                    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                    culpa qui officia deserunt mollit anim id est laborum.
+                    I'm a junior studying Computer Science at Georgia Tech and interested in Android App Development and
+                    Cybersecurity! I’m also a Codepath Student where I have completed many courses that go in-depth into
+                    the concepts of Android Development and Cybersecurity.
                 </p>
             );
         },
     },
     {
         description: "Developer 4",
-        title: "Nicholas Neitsche",
+        title: "Nicholas Nitsche",
         src: nicholasNietscheURL,
         ctaText: "View Bio",
         ctaLink: "#",

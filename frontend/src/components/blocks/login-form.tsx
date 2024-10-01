@@ -1,5 +1,6 @@
 import axios from "axios";
 
+import { IconBrandGoogle } from "@tabler/icons-react";
 import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { Input } from "../ui/input";
@@ -35,7 +36,6 @@ const ErrorMessages: React.FC<ErrorMessagesProps> = ({ messages }) => {
 };
 
 export function LoginForm() {
-
     let [errorMessages, setErrorMessages] = useState<string[]>([]);
     const [inputs, setInputs] = useState({
         userName: null,
@@ -79,7 +79,7 @@ export function LoginForm() {
             if (error.response.data.status == 409) {
                 newErrorMessages.push("You are already authenticated. Log out to create a new account.");
             } else {
-            newErrorMessages.push("Invalid Username or Password.");
+                newErrorMessages.push("Invalid Username or Password.");
             }
         } finally {
             setErrorMessages(newErrorMessages);
@@ -101,7 +101,7 @@ export function LoginForm() {
 
             <form className="my-8" onSubmit={handleSubmit}>
                 <LabelInputContainer className="mb-8">
-                <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="username">Username</Label>
                     <Input
                         id="username"
                         name="userName"
@@ -138,6 +138,21 @@ export function LoginForm() {
                 </div>
 
                 <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
+
+                <div className="flex flex-col space-y-8">
+                    {/* TODO: Dynamically generate socialaccount providers */}
+                    <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
+                        You may choose to log in with one of the below social account providers.
+                    </p>
+                    <button
+                        className=" relative group/btn flex space-x-2 items-center justify-start px-4 w-full text-black rounded-md h-10 font-medium shadow-input bg-gray-50 dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_var(--neutral-800)]"
+                        type="submit"
+                    >
+                        <IconBrandGoogle className="h-4 w-4 text-neutral-800 dark:text-neutral-300" />
+                        <span className="text-neutral-700 dark:text-neutral-300 text-sm">Google</span>
+                        <BottomGradient />
+                    </button>
+                </div>
             </form>
         </div>
     );

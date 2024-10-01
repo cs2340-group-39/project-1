@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useState } from "react";
-
-import "../../globals.css";
 import { cn } from "../../lib/utils";
 import { Menu, MenuItem } from "../ui/navbar-menu";
+
+import "../../globals.css";
 
 interface NavbarData {
     className?: string;
@@ -23,8 +23,16 @@ export default function ProfileNavbar({ className, setProfilePage }: NavbarData)
     };
 
     return (
-        <div className={cn("fixed top-10 inset-x-0 max-w-2xl mx-auto z-50", className)}>
+        <div className={cn("fixed top-10 justify-center z-50", className)}>
             <Menu setActive={setActive}>
+                <MenuItem
+                    active={null}
+                    setActive={setActive}
+                    onClick={() => {
+                        window.location.replace("/dashboard/index");
+                    }}
+                    item={"Dashboard"}
+                />
                 <MenuItem
                     active={null}
                     setActive={setActive}
@@ -45,9 +53,17 @@ export default function ProfileNavbar({ className, setProfilePage }: NavbarData)
                     active={null}
                     setActive={setActive}
                     onClick={() => {
-                        setProfilePage("account-connections-form");
+                        setProfilePage("user-favorite-places-card");
                     }}
-                    item={"Account Connections"}
+                    item={"Your Favorite Places"}
+                />
+                <MenuItem
+                    active={null}
+                    setActive={setActive}
+                    onClick={() => {
+                        setProfilePage("user-reviews-card");
+                    }}
+                    item={"Your Reviews"}
                 />
                 <button onClick={handleLogout} className="text-black dark:text-white">
                     Logout

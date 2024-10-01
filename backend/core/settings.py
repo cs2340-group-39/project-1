@@ -140,6 +140,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django Allauth Setup
 SITE_ID = 3
 
+# TODO: LOOK AT THIS AND FIX ASAP: https://docs.allauth.org/en/latest/account/configuration.html
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Make sure email is valid
+ACCOUNT_CHANGE_EMAIL = True  # Only one email per person
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Make sure the email is real
+
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": [
@@ -156,11 +164,11 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "/users/account/verify-email/{key}",
+    "account_confirm_email": "/users/api/account/verify_email?key={key}",
     "account_reset_password": "/users/account/password/reset",
-    "account_reset_password_from_key": "/users/account/password/reset/key/{key}",
+    "account_reset_password_from_key": "/users/account/password/reset?key={key}",
     "account_signup": "/users/signup",
-    "socialaccount_login_error": "/users/account/provider/callback",
+    # "socialaccount_login_error": "/users/account/provider/callback",
 }
 
 HEADLESS_ONLY = False  # TODO: Change to True once finished with auth setup
@@ -171,5 +179,5 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER = os.getenv("GOOGLE_USERNAME")
-EMAIL_HOST_PASSWORD = os.getenv("GOOGLE_PASSWORD")
+EMAIL_HOST_PASSWORD = os.getenv("GOOGLE_APP_PASSWORD")
 EMAIL_PORT = 587

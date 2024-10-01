@@ -1,5 +1,9 @@
+import os
+import re
 from http import HTTPStatus
 
+import googlemaps
+import requests
 from django.forms.models import model_to_dict
 from django.http import HttpRequest
 from maps.models import Place, PlaceReview
@@ -10,23 +14,50 @@ from .schemas import PlaceReviewSchema, PlaceSchema
 
 api = NinjaAPI(urls_namespace="users")
 
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
+
+
+@api.get("/account/verify_email")
+def verify_email(request: HttpRequest, key: str):
+    headers = {
+        "x-email-verification-key": key
+    }
+    response1 = requests.get("https://allauth.org/_allauth/browser/v1/auth/email/verify", headers=headers)
+    response2 = requests.post("http://127.0.0.1:8000/_allauth/browser/v1/auth/email/verify", json={
+        "key": key,
+    })
+    return {"1": response1.request.headers.__dict__, "2": response2.json()}
 
 @api.get("/get_favorite_places")
 def get_favorite_places(request: HttpRequest):
     if not request.user.is_authenticated:
         return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
+    
+    def parse_address(address_string):
+        pattern = r'<span class="([^"]+)">([^<]+)</span>'
+        matches = re.findall(pattern, address_string)
+        address_dict = {class_name.replace("-", "_"): content for class_name, content in matches}
+        return address_dict
 
     profile = UserProfile.objects.get(user=request.user)
+
+    favorite_places = []
+    for place in profile.favorite_places:
+        place_result = gmaps.place(place_id=place["google_place_id"])["result"]
+        favorite_places.append(
+            {
+                "google_place_id": place["google_place_id"],
+                "place_name": place_result.get("name"),
+                "place_address": parse_address(place_result["adr_address"]),
+                "google_maps_page": place_result.get("url"),
+            }
+        )
 
     return {
         "status": HTTPStatus.OK,
         "user_id": profile.user.id,
-        "favorite_places": [
-            {
-                "google_place_id": place.google_place_id,
-            }
-            for place in profile.favorite_places.all()
-        ],
+        "favorite_places": favorite_places,
     }
 
 @api.post("/add_favorite_place")
@@ -97,20 +128,33 @@ def remove_favorite_place(request: HttpRequest, params: PlaceSchema):
 def get_reviews(request: HttpRequest):
     if not request.user.is_authenticated:
         return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
+    
+    def parse_address(address_string):
+        pattern = r'<span class="([^"]+)">([^<]+)</span>'
+        matches = re.findall(pattern, address_string)
+        address_dict = {class_name.replace("-", "_"): content for class_name, content in matches}
+        return address_dict
+
+    user_reviews = []
+    for review in request.user.reviews_for_user.all():
+        place_result = gmaps.place(place_id=review.place.google_place_id)["result"]
+        user_reviews.append(
+            {
+                "google_place_id": review.place.google_place_id,
+                "place_name": place_result.get("name"),
+                "place_address": parse_address(place_result["adr_address"]),
+                "google_maps_page": place_result.get("url"),
+                "rating": review.rating,
+                "text": review.text,
+                "timestamp": review.timestamp,
+            }
+        )
 
     return {
         "status": HTTPStatus.OK,
         "user_id": request.user.id,
         "username": request.user.username,
-        "reviews": [
-            {
-                "google_place_id": review.place.google_place_id,
-                "rating": review.rating,
-                "text": review.text,
-                "timestamp": review.timestamp,
-            }
-            for review in request.user.reviews_for_user.all()
-        ],
+        "reviews": user_reviews
     }
 
 

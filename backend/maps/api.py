@@ -7,6 +7,7 @@ import googlemaps
 import pytz
 from django.http import HttpRequest
 from ninja import NinjaAPI
+from users.models import UserProfile
 
 from .models import Place
 from .schemas import SearchParams
@@ -43,16 +44,10 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         "rating": 4.0
     }
     """
-    response = []
+    if not request.user.is_authenticated:
+        return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
 
-    if params.search_mode == "cuisine_type":
-        result = gmaps.places(location=params.location, query=f"cuisine type: {params.query}", radius=params.radius)
-    if params.search_mode == "restaurant_name":
-        result = gmaps.places(location=params.location, query=f"restaurant name: {params.query}", radius=params.radius)
-    if params.search_mode == "location":
-        result = gmaps.places(
-            location=params.location, query=f"search for restaurants on: {params.query}", radius=params.radius
-        )
+    response = []
 
     query = ""
     if params.location_name != "":
@@ -78,11 +73,15 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             continue
 
         place_result = gmaps.place(place_id=place["place_id"], reviews_sort="most_relevant")["result"]
-        place_model_object, created = Place.objects.get_or_create(google_place_id=place["place_id"])
+        place_model, created = Place.objects.get_or_create(google_place_id=place["place_id"])
 
         custom_place_reviews = []
         if not created:
-            custom_place_reviews = place_model_object.reviews_for_place.all()
+            custom_place_reviews = place_model.reviews_for_place.all()
+
+        is_favorite_place = False
+        if not created:
+            is_favorite_place = place["place_id"] in favorite_google_place_ids
 
         response.append({
             "place_id": place["place_id"],
@@ -126,6 +125,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             "photo_url": (
                 f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={place_result['photos'][0]['photo_reference']}&key=${GOOGLE_API_KEY}"
             ),  # New field for photo URL
+            "is_favorite_place": is_favorite_place,
         })
 
     return response

@@ -34,7 +34,8 @@ const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
 // const GET_FAVORITE_RESTAURANTS_URL = "http://127.0.0.1/users/api/get_favorite_restaurants";
 // const GET_REVIEWS_FOR_USER_URL = "http://127.0.0.1/users/api/get_reviews";
 const POST_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/add_favorite_place";
-// const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1/users/api/add_review";
+const PUT_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/remove_favorite_place";
+const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1:8000/users/api/add_review";
 
 interface HashTable<T> {
     [key: number | string]: T;
@@ -78,6 +79,7 @@ interface Content {
     rating: number;
     reviews: PlaceReview[];
     customReviews: PlaceReview[];
+    isFavoritePlace: boolean;
 }
 
 interface MapsData {
@@ -96,6 +98,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [presetsOpen, setPresetsOpen] = useState(false);
 
+    const [searchLoading, setSearchLoading] = useState(false); //true if currently searching, changes Search button text
     const [lightPreset, setLightPreset] = useState("day");
     const [showPlaceLabels, setShowPlaceLabels] = useState(true);
     const [showPOILabels, setShowPOILabels] = useState(true);
@@ -131,8 +134,38 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         };
         await axios.post(POST_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
 
+        setContentData((prevContentData) => ({
+            ...prevContentData,
+            [selectedPin!.contentId]: {
+                ...prevContentData[selectedPin!.contentId],
+                isFavoritePlace: true,
+            },
+        }));
+
         toast({
             title: "Restaurant successfully added to favorites.",
+            description: `This specific restaurant named ${
+                contentData[selectedPin!.contentId].placeName
+            } should now be in your favorite places.`,
+        });
+    };
+
+    const handleRemoveFromFavorites = async () => {
+        const payload = {
+            google_place_id: contentData[selectedPin!.contentId]!.placeId,
+        };
+        await axios.put(PUT_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
+
+        setContentData((prevContentData) => ({
+            ...prevContentData,
+            [selectedPin!.contentId]: {
+                ...prevContentData[selectedPin!.contentId],
+                isFavoritePlace: false,
+            },
+        }));
+
+        toast({
+            title: "Restaurant successfully removed from favorites.",
             description: `This specific restaurant named ${
                 contentData[selectedPin!.contentId].placeName
             } should now be in your favorite places.`,
@@ -142,16 +175,48 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const handleSubmitReview = async () => {
         console.log("Submitting review:", newReview);
         console.log("Review for placeId:", contentData[selectedPin!.contentId]?.placeId);
-    };
 
-    const getLightPresetByHour = (hour: number) => {
-        if (hour >= 5 && hour < 8) return "dawn";
-        if (hour >= 8 && hour < 18) return "day";
-        if (hour >= 18 && hour < 21) return "dusk";
-        return "night";
+        const payload = {
+            place: {
+                google_place_id: contentData[selectedPin!.contentId]?.placeId,
+            },
+            text: newReview.text,
+            rating: newReview.rating,
+        };
+        const response = await axios.post(POST_REVIEW_FROM_USER_URL, payload);
+
+        setContentData((prevContentData) => ({
+            ...prevContentData,
+            [selectedPin!.contentId]: {
+                ...prevContentData[selectedPin!.contentId],
+                customReviews: [
+                    ...prevContentData[selectedPin!.contentId].customReviews,
+                    {
+                        authorName: response.data.username,
+                        rating: newReview.rating,
+                        text: newReview.text,
+                        time: response.data.review.timestamp,
+                    },
+                ],
+            },
+        }));
+
+        toast({
+            title: "Restaurant review successfully added.",
+            description: `Your review of this specific restaurant named ${
+                contentData[selectedPin!.contentId].placeName
+            } should should now be listed. Please consider that your rating will not affect the overall rating of this restaurant`,
+        });
     };
 
     const handleSearch = async () => {
+        setSearchLoading(true); //change search text to Searching...
+
+        toast({
+            title: "Search pending...",
+            description: "Please wait while we search for restaurants matching your query.",
+        });
+
         const userInfoResponse = await axios.get(USER_INFO_API_URL);
         const location = {
             lat: userInfoResponse.data.latitude,
@@ -216,15 +281,24 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         time: customReview.time,
                     };
                 }),
+                isFavoritePlace: placeData.is_favorite_place,
             };
 
             itId++;
         }
 
+        setSearchLoading(false);
         setPinData(newPinData);
         setContentData(newContentData);
 
         console.log(newContentData);
+    };
+
+    const getLightPresetByHour = (hour: number) => {
+        if (hour >= 5 && hour < 8) return "dawn";
+        if (hour >= 8 && hour < 18) return "day";
+        if (hour >= 18 && hour < 21) return "dusk";
+        return "night";
     };
 
     useEffect(() => {
@@ -264,11 +338,32 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     layers: [
                         new ScenegraphLayer<Pin>({
                             id: "ScenegraphLayer",
-                            data: pinData,
+                            data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
                             getPosition: (d: Pin) => [d.lng, d.lat, 0],
                             getOrientation: (_: Pin) => [180, 0, 0],
-                            scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
+                            scenegraph: new URL("./3d-models/favorite-pin.gltf", import.meta.url).href,
                             sizeScale: 30,
+                            _lighting: "pbr",
+                            pickable: true,
+                            autoHighlight: true,
+                            onClick: (info) => {
+                                if (info.object) {
+                                    setSelectedPin(info.object);
+                                    mapRef.current.flyTo({
+                                        center: [info.object.lng, info.object.lat],
+                                        zoom: 17,
+                                        duration: 2000,
+                                    });
+                                }
+                            },
+                        }),
+                        new ScenegraphLayer<Pin>({
+                            id: "ScenegraphLayer",
+                            data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
+                            getPosition: (d: Pin) => [d.lng, d.lat, 0],
+                            getOrientation: (_: Pin) => [180, 0, 0],
+                            scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url).href,
+                            sizeScale: 30, // Apply adjusted sizeScale here
                             _lighting: "pbr",
                             pickable: true,
                             autoHighlight: true,
@@ -335,10 +430,31 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 layers: [
                     new ScenegraphLayer<Pin>({
                         id: "ScenegraphLayer",
-                        data: pinData,
+                        data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
                         getPosition: (d: Pin) => [d.lng, d.lat, 0],
                         getOrientation: (_: Pin) => [180, 0, 0],
-                        scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
+                        scenegraph: new URL("./3d-models/favorite-pin.gltf", import.meta.url).href,
+                        sizeScale: sizeScale,
+                        _lighting: "pbr",
+                        pickable: true,
+                        autoHighlight: true,
+                        onClick: (info) => {
+                            if (info.object) {
+                                setSelectedPin(info.object);
+                                mapRef.current.flyTo({
+                                    center: [info.object.lng, info.object.lat],
+                                    zoom: 17,
+                                    duration: 2000,
+                                });
+                            }
+                        },
+                    }),
+                    new ScenegraphLayer<Pin>({
+                        id: "ScenegraphLayer",
+                        data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
+                        getPosition: (d: Pin) => [d.lng, d.lat, 0],
+                        getOrientation: (_: Pin) => [180, 0, 0],
+                        scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url).href,
                         sizeScale: sizeScale, // Apply adjusted sizeScale here
                         _lighting: "pbr",
                         pickable: true,
@@ -533,6 +649,49 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     </HoverBorderGradient>
                                 </div>
                             )}
+                            <div className="space-y-2">
+                                <Label htmlFor="searchMode">Search Mode</Label>
+                                <Select value={searchMode} onValueChange={setSearchMode}>
+                                    <SelectTrigger id="searchMode">
+                                        <SelectValue placeholder="Select search mode" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
+                                        <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
+                                        <SelectItem value="location">Location</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="radius">Radius (meters): {radius}</Label>
+                                <Slider
+                                    id="radius"
+                                    min={100}
+                                    max={5000}
+                                    step={100}
+                                    value={[radius]}
+                                    onValueChange={(value) => setRadius(value[0])}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="rating">Minimum Rating: {rating}</Label>
+                                <Slider
+                                    id="rating"
+                                    min={1}
+                                    max={5}
+                                    step={0.1}
+                                    value={[rating]}
+                                    onValueChange={(value) => setRating(value[0])}
+                                />
+                            </div>
+                            <HoverBorderGradient
+                                containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                as="button"
+                                onClick={handleSearch}
+                            >
+                                { searchLoading ? "Searching..." : "Search" }
+                            </HoverBorderGradient>
                         </div>
                     </CardContent>
                 </Card>
@@ -545,7 +704,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         }
                     }}
                 >
-                    <SheetContent side="right" className="overflow-y-auto w-full sm:max-w-xl">
+                    <SheetContent side="right" className="overflow-y-auto w-96 sm:max-w-xl">
                         {selectedPin && (
                             <div className="space-y-6">
                                 <SheetHeader className="text-center">
@@ -557,18 +716,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     </SheetDescription>
                                 </SheetHeader>
 
-                                {/* Display Image */}
-                                <div className="mb-4">
-                                    <img
-                                        src={contentData[selectedPin.contentId]?.photoUrl || '/path/to/default-image.jpg'}
-                                        alt={contentData[selectedPin.contentId]?.placeName || 'Restaurant'}
-                                        className="w-full h-48 object-cover rounded-lg"
-                                    />
-                                </div>
-
                                 {/* Display Contact Info */}
-                                <div
-                                    className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
                                         Contact Information
                                     </h3>
@@ -594,20 +743,30 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         >
                                             View on Google Maps
                                         </LinkPreview>
-                                        <HoverBorderGradient
-                                            containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                            className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                                            as="button"
-                                            onClick={handleSaveAsFavorite}
-                                        >
-                                            Save as Favorite
-                                        </HoverBorderGradient>
+                                        {contentData[selectedPin.contentId]?.isFavoritePlace ? (
+                                            <HoverBorderGradient
+                                                containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                                as="button"
+                                                onClick={handleRemoveFromFavorites}
+                                            >
+                                                Remove from favorites
+                                            </HoverBorderGradient>
+                                        ) : (
+                                            <HoverBorderGradient
+                                                containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                                as="button"
+                                                onClick={handleSaveAsFavorite}
+                                            >
+                                                Save as Favorite
+                                            </HoverBorderGradient>
+                                        )}
                                     </div>
                                 </div>
 
                                 {/* Write a Review */}
-                                <div
-                                    className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
                                         Write a Review
                                     </h3>
@@ -653,9 +812,43 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     </div>
                                 </div>
 
+                                {/* Display custom reviews */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xl font-semibold text-black dark:text-white">
+                                        Reviews from our Users
+                                    </h3>
+                                    {contentData[selectedPin.contentId]?.customReviews.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {contentData[selectedPin.contentId]?.customReviews.map((review, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
+                                                >
+                                                    <p className="font-semibold text-lg text-black dark:text-white">
+                                                        {review.authorName}
+                                                    </p>
+                                                    <p className="text-yellow-400">Rating: {review.rating} / 5</p>
+                                                    <p className="mt-2 text-black dark:text-white">{review.text}</p>
+                                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
+                                                        {new Date(review.time * 1000).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
+                                            <p className="text-black dark:text-white">
+                                                None of our users have left a review for this restaurant.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
                                 {/* Display Reviews */}
                                 <div className="space-y-4">
-                                    <h3 className="text-xl font-semibold text-black dark:text-white">Reviews</h3>
+                                    <h3 className="text-xl font-semibold text-black dark:text-white">
+                                        Reviews from Google
+                                    </h3>
                                     {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
                                         <div className="space-y-4">
                                             {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
@@ -675,15 +868,15 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             ))}
                                         </div>
                                     ) : (
-                                        <div
-                                            className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
-                                            <p className="text-black dark:text-white">No reviews available.</p>
+                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
+                                            <p className="text-black dark:text-white">
+                                                No reviews are available from Google.
+                                            </p>
                                         </div>
                                     )}
                                 </div>
 
-                                <SheetClose
-                                    className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                                <SheetClose className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
                                     Close
                                 </SheetClose>
                             </div>

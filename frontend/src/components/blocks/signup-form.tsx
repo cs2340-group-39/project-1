@@ -102,14 +102,11 @@ export function SignupForm() {
         };
 
         try {
+            // @ts-ignore
             const response = await axios.post(
                 "http://127.0.0.1:8000/_allauth/browser/v1/auth/signup", // TODO: Change this, don't hardcode the domain
                 payload
             );
-
-            if (response.data.status === 401) {
-                setShouldRedirect(true);
-            }
         } catch (error: any) {
             if (error.response.data.status === 401) {
                 setShouldRedirect(true);

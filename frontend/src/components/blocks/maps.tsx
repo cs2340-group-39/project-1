@@ -105,6 +105,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
     const [zoom, setZoom] = useState(15.1);
     const [query, setQuery] = useState("");
+    // @ts-ignore
     const [searchMode, setSearchMode] = useState("cuisine_type");
     const [radius, setRadius] = useState(1000);
     const [rating, setRating] = useState(4.0);
@@ -120,9 +121,9 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [presetsOpen, setPresetsOpen] = useState(false);
 
-    const [cuisineType, setCuisineType] = useState('');
-    const [restaurantName, setRestaurantName] = useState('');
-    const [locationName, setLocation] = useState('');
+    const [cuisineType, setCuisineType] = useState("");
+    const [restaurantName, setRestaurantName] = useState("");
+    const [locationName, setLocation] = useState("");
 
     const handleSaveAsFavorite = async () => {
         const payload = {
@@ -536,7 +537,11 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     {/* Show POI Labels Toggle */}
                                     <div className="flex items-center justify-between">
                                         <Label htmlFor="showPOILabels">Show POI labels</Label>
-                                        <Switch id="showPOILabels" checked={showPOILabels} onCheckedChange={setShowPOILabels} />
+                                        <Switch
+                                            id="showPOILabels"
+                                            checked={showPOILabels}
+                                            onCheckedChange={setShowPOILabels}
+                                        />
                                     </div>
 
                                     {/* Show Road Labels Toggle */}
@@ -653,7 +658,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         as="button"
                                         onClick={handleSearch}
                                     >
-                                        { searchLoading ? "Searching..." : "Search" }
+                                        {searchLoading ? "Searching..." : "Search"}
                                     </HoverBorderGradient>
                                 </div>
                             )}

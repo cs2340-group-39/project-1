@@ -42,7 +42,9 @@ const ReviewsList: React.FC<ReviewMessagesProps> = ({ reviews: reviews }) => {
                             </h3>
                             <div className="border-2 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors rounded-md p-3 mb-4">
                                 <p className="text-sm text-zinc-600 dark:text-zinc-300">{review.placeAddress}</p>
-                                <LinkPreview url={review.googleMapsUrl}>View on Google Maps</LinkPreview>
+                                <LinkPreview url={review.googleMapsUrl} className="text-white">
+                                    View on Google Maps
+                                </LinkPreview>
                             </div>
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">

@@ -30,7 +30,6 @@ def get_favorite_places(request: HttpRequest):
         ],
     }
 
-
 @api.post("/add_favorite_place")
 def add_favorite_place(request: HttpRequest, params: PlaceSchema):
     if not request.user.is_authenticated:
@@ -58,6 +57,38 @@ def add_favorite_place(request: HttpRequest, params: PlaceSchema):
         "status": HTTPStatus.OK,
         "user_id": profile.user.id,
         "favorite_place": {
+            "place_id": place.google_place_id,
+        },
+    }
+
+
+@api.put("/remove_favorite_place")
+def remove_favorite_place(request: HttpRequest, params: PlaceSchema):
+    if not request.user.is_authenticated:
+        return {
+            "status": HTTPStatus.FORBIDDEN,
+            "msg": "User must be authenticated for this method.",
+        }
+
+    profile = UserProfile.objects.get(user=request.user)
+    place, created = Place.objects.get_or_create(google_place_id=params.google_place_id)
+
+    if model_to_dict(place).get("google_place_id")  not in [
+        favorite_place.get("google_place_id") for favorite_place in profile.favorite_places
+    ]:
+        return {
+            "status": HTTPStatus.BAD_REQUEST,
+            "user_id": profile.user.id,
+            "msg": f"The place id '{params.google_place_id}' has not already been favorited by this user.",
+        }
+
+    profile.favorite_places.remove(model_to_dict(place))
+    profile.save()
+
+    return {
+        "status": HTTPStatus.OK,
+        "user_id": profile.user.id,
+        "favorite_place_removed": {
             "place_id": place.google_place_id,
         },
     }

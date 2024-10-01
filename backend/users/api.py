@@ -3,7 +3,6 @@ import re
 from http import HTTPStatus
 
 import googlemaps
-import requests
 from django.forms.models import model_to_dict
 from django.http import HttpRequest
 from maps.models import Place, PlaceReview
@@ -18,16 +17,12 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
 
-@api.get("/account/verify_email")
-def verify_email(request: HttpRequest, key: str):
-    headers = {
-        "x-email-verification-key": key
-    }
-    response1 = requests.get("https://allauth.org/_allauth/browser/v1/auth/email/verify", headers=headers)
-    response2 = requests.post("http://127.0.0.1:8000/_allauth/browser/v1/auth/email/verify", json={
-        "key": key,
-    })
-    return {"1": response1.request.headers.__dict__, "2": response2.json()}
+# @api.get("/account/confirm_email")
+# def confirm_email(request: HttpRequest, code: str):
+#     response = requests.post("http://127.0.0.1:8000/_allauth/browser/v1/auth/email/verify", json={
+#         "key": code
+#     })
+#     return response.json()
 
 @api.get("/get_favorite_places")
 def get_favorite_places(request: HttpRequest):

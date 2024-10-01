@@ -68,6 +68,7 @@ export function SignupForm() {
     const [inputs, setInputs] = useState({
         userName: null,
         password: null,
+        email: null,
         confirmPassword: null,
     });
     const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -106,10 +107,15 @@ export function SignupForm() {
                 payload
             );
 
-            if (response.data.status === 200) {
+            if (response.data.status === 401) {
                 setShouldRedirect(true);
             }
         } catch (error: any) {
+            if (error.response.data.status === 401) {
+                setShouldRedirect(true);
+                return;
+            }
+
             if (error.response.data.status == 409) {
                 newErrorMessages.push("You are already authenticated. Log out to create a new account.");
             }
@@ -139,7 +145,7 @@ export function SignupForm() {
 
     const handleAnimationComplete = () => {
         if (shouldRedirect) {
-            window.location.href = "/";
+            window.location.href = "/users/accounts/code_form/";
         }
         setLoading(false);
     };

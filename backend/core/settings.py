@@ -143,10 +143,10 @@ SITE_ID = 3
 # TODO: LOOK AT THIS AND FIX ASAP: https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True  # Make sure email is valid
 ACCOUNT_CHANGE_EMAIL = True  # Only one email per person
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"  # Make sure the email is real
-
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -163,18 +163,14 @@ SOCIALACCOUNT_PROVIDERS = {
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+HEADLESS_ONLY = True
 HEADLESS_FRONTEND_URLS = {
-    "account_confirm_email": "/users/api/account/verify_email?key={key}",
+    "account_confirm_email": "/users/api/account/confirm_email",
     "account_reset_password": "/users/account/password/reset",
-    "account_reset_password_from_key": "/users/account/password/reset?key={key}",
     "account_signup": "/users/signup",
-    # "socialaccount_login_error": "/users/account/provider/callback",
 }
 
-HEADLESS_ONLY = False  # TODO: Change to True once finished with auth setup
-
 # Email
-# TODO: Not Working, Not Necessary, Maybe fix it
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
 EMAIL_HOST = "smtp.gmail.com"

@@ -38,3 +38,9 @@ def profile_view(request: HttpRequest) -> HttpResponse:
     data = {}
     context = {"data": json.dumps(data)}
     return render(request, "users/profile.html", context)
+
+
+def code_form_view(request: HttpRequest) -> HttpResponse:
+    data = {}
+    context = {"data": json.dumps(data)}
+    return render(request, "users/code_form.html", context)

@@ -37,22 +37,6 @@ export default function ProfileNavbar({ className, setProfilePage }: NavbarData)
                     active={null}
                     setActive={setActive}
                     onClick={() => {
-                        setProfilePage("change-email-form");
-                    }}
-                    item={"Change Email"}
-                />
-                <MenuItem
-                    active={null}
-                    setActive={setActive}
-                    onClick={() => {
-                        setProfilePage("change-password-form");
-                    }}
-                    item={"Change Password"}
-                />
-                <MenuItem
-                    active={null}
-                    setActive={setActive}
-                    onClick={() => {
                         setProfilePage("user-favorite-places-card");
                     }}
                     item={"Your Favorite Places"}

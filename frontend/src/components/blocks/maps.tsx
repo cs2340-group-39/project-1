@@ -31,8 +31,6 @@ import { toast } from "../hooks/use-toast";
 // @ts-ignore
 const PLACES_SEARCH_API_URL = "http://127.0.0.1:8000/maps/api/search_for_restaurants";
 const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
-// const GET_FAVORITE_RESTAURANTS_URL = "http://127.0.0.1/users/api/get_favorite_restaurants";
-// const GET_REVIEWS_FOR_USER_URL = "http://127.0.0.1/users/api/get_reviews";
 const POST_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/add_favorite_place";
 const PUT_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/remove_favorite_place";
 const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1:8000/users/api/add_review";
@@ -118,12 +116,27 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [newReview, setNewReview] = useState({ text: "", rating: 0 });
     const [errorMessages, setErrorMessages] = useState([] as string[]);
 
-    const [filtersOpen, setFiltersOpen] = useState(false);
-    const [presetsOpen, setPresetsOpen] = useState(false);
-
     const [cuisineType, setCuisineType] = useState("");
     const [restaurantName, setRestaurantName] = useState("");
     const [locationName, setLocation] = useState("");
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const [presetsOpen, setPresetsOpen] = useState(false);
+    const filtersRef = useRef<HTMLDivElement>(null);
+    const presetsRef = useRef<HTMLDivElement>(null);
+
+    // ... (rest of the component logic remains the same)
+
+    useEffect(() => {
+        if (filtersRef.current) {
+            filtersRef.current.style.maxHeight = filtersOpen ? `${filtersRef.current.scrollHeight}px` : "0";
+        }
+    }, [filtersOpen, cuisineType, restaurantName, locationName, query, radius, rating]);
+
+    useEffect(() => {
+        if (presetsRef.current) {
+            presetsRef.current.style.maxHeight = presetsOpen ? `${presetsRef.current.scrollHeight}px` : "0";
+        }
+    }, [presetsOpen, lightPreset, showPlaceLabels, showPOILabels, showRoadLabels, showTransitLabels]);
 
     const handleSaveAsFavorite = async () => {
         const payload = {
@@ -506,65 +519,67 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                             <div onClick={() => setPresetsOpen(!presetsOpen)} className="cursor-pointer">
                                 <h3 className="text-lg font-semibold">Map Presets</h3>
                             </div>
-                            {presetsOpen && (
-                                <div className="space-y-4 mt-2">
-                                    {/* Light Preset Dropdown */}
-                                    <div className="space-y-2">
-                                        <Label htmlFor="lightPreset">Light Preset</Label>
-                                        <Select value={lightPreset} onValueChange={setLightPreset}>
-                                            <SelectTrigger id="lightPreset">
-                                                <SelectValue placeholder="Select light preset" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="dawn">Dawn</SelectItem>
-                                                <SelectItem value="day">Day</SelectItem>
-                                                <SelectItem value="dusk">Dusk</SelectItem>
-                                                <SelectItem value="night">Night</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {/* Show Place Labels Toggle */}
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="showPlaceLabels">Show place labels</Label>
-                                        <Switch
-                                            id="showPlaceLabels"
-                                            checked={showPlaceLabels}
-                                            onCheckedChange={setShowPlaceLabels}
-                                        />
-                                    </div>
-
-                                    {/* Show POI Labels Toggle */}
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="showPOILabels">Show POI labels</Label>
-                                        <Switch
-                                            id="showPOILabels"
-                                            checked={showPOILabels}
-                                            onCheckedChange={setShowPOILabels}
-                                        />
-                                    </div>
-
-                                    {/* Show Road Labels Toggle */}
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="showRoadLabels">Show road labels</Label>
-                                        <Switch
-                                            id="showRoadLabels"
-                                            checked={showRoadLabels}
-                                            onCheckedChange={setShowRoadLabels}
-                                        />
-                                    </div>
-
-                                    {/* Show Transit Labels Toggle */}
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="showTransitLabels">Show transit labels</Label>
-                                        <Switch
-                                            id="showTransitLabels"
-                                            checked={showTransitLabels}
-                                            onCheckedChange={setShowTransitLabels}
-                                        />
-                                    </div>
+                            <div
+                                ref={presetsRef}
+                                className="space-y-4 overflow-hidden transition-all duration-300 ease-in-out"
+                                style={{ maxHeight: "0" }}
+                            >
+                                {/* Light Preset Dropdown */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="lightPreset">Light Preset</Label>
+                                    <Select value={lightPreset} onValueChange={setLightPreset}>
+                                        <SelectTrigger id="lightPreset">
+                                            <SelectValue placeholder="Select light preset" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="dawn">Dawn</SelectItem>
+                                            <SelectItem value="day">Day</SelectItem>
+                                            <SelectItem value="dusk">Dusk</SelectItem>
+                                            <SelectItem value="night">Night</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            )}
+
+                                {/* Show Place Labels Toggle */}
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="showPlaceLabels">Show place labels</Label>
+                                    <Switch
+                                        id="showPlaceLabels"
+                                        checked={showPlaceLabels}
+                                        onCheckedChange={setShowPlaceLabels}
+                                    />
+                                </div>
+
+                                {/* Show POI Labels Toggle */}
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="showPOILabels">Show POI labels</Label>
+                                    <Switch
+                                        id="showPOILabels"
+                                        checked={showPOILabels}
+                                        onCheckedChange={setShowPOILabels}
+                                    />
+                                </div>
+
+                                {/* Show Road Labels Toggle */}
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="showRoadLabels">Show road labels</Label>
+                                    <Switch
+                                        id="showRoadLabels"
+                                        checked={showRoadLabels}
+                                        onCheckedChange={setShowRoadLabels}
+                                    />
+                                </div>
+
+                                {/* Show Transit Labels Toggle */}
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="showTransitLabels">Show transit labels</Label>
+                                    <Switch
+                                        id="showTransitLabels"
+                                        checked={showTransitLabels}
+                                        onCheckedChange={setShowTransitLabels}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -576,7 +591,11 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                             <div onClick={() => setFiltersOpen(!filtersOpen)} className="cursor-pointer">
                                 <h3 className="text-lg font-semibold">Filters</h3>
                             </div>
-                            {filtersOpen && (
+                            <div
+                                ref={filtersRef}
+                                className="space-y-4 overflow-hidden transition-all duration-300 ease-in-out"
+                                style={{ maxHeight: "0" }}
+                            >
                                 <div className="space-y-4 mt-2">
                                     {/* Location Input */}
                                     <div className="space-y-2">
@@ -661,7 +680,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         {searchLoading ? "Searching..." : "Search"}
                                     </HoverBorderGradient>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

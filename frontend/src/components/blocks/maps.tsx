@@ -692,7 +692,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         }
                     }}
                 >
-                    <SheetContent side="right" className="overflow-y-auto w-96 sm:max-w-xl">
+                    <SheetContent side="right" className="overflow-y-auto w-[36rem] sm:max-w-xl">
                         {selectedPin && (
                             <div className="space-y-6">
                                 <SheetHeader className="text-center">
@@ -825,7 +825,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
+                                        <div className="p-4 rounded-lg bg-gradient-to-r bg-white dark:bg-black shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
                                             <p className="text-black dark:text-white">
                                                 None of our users have left a review for this restaurant.
                                             </p>

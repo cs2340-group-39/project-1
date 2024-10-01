@@ -1,4 +1,3 @@
-from datetime import datetime
 from http import HTTPStatus
 
 from django.forms.models import model_to_dict
@@ -102,6 +101,7 @@ def get_reviews(request: HttpRequest):
     return {
         "status": HTTPStatus.OK,
         "user_id": request.user.id,
+        "username": request.user.username,
         "reviews": [
             {
                 "google_place_id": review.place.google_place_id,
@@ -114,22 +114,23 @@ def get_reviews(request: HttpRequest):
     }
 
 
-@api.post("/add_favorite_place")
+@api.post("/add_review")
 def add_review(request: HttpRequest, params: PlaceReviewSchema):
     if not request.user.is_authenticated:
         return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
 
     place, created = Place.objects.get_or_create(google_place_id=params.place.google_place_id)
     place_review = PlaceReview.objects.create(
-        place=place, user=request.user, rating=params.rating, text=params.text, timestamp=datetime.now()
+        place=place, user=request.user, rating=params.rating, text=params.text
     )
 
     return {
         "status": HTTPStatus.OK,
         "user_id": request.user.id,
+        "username": request.user.username,
         "review": {
-            "place": place_review.place,
-            "user": place_review.user,
+            "place": model_to_dict(place_review.place),
+            "username": place_review.user.username,
             "rating": place_review.rating,
             "text": place_review.text,
             "timestamp": place_review.timestamp,

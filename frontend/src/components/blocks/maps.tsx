@@ -35,7 +35,7 @@ const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
 // const GET_REVIEWS_FOR_USER_URL = "http://127.0.0.1/users/api/get_reviews";
 const POST_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/add_favorite_place";
 const PUT_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/remove_favorite_place";
-// const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1/users/api/add_review";
+const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1:8000/users/api/add_review";
 
 interface HashTable<T> {
     [key: number | string]: T;
@@ -166,14 +166,46 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const handleSubmitReview = async () => {
         console.log("Submitting review:", newReview);
         console.log("Review for placeId:", contentData[selectedPin!.contentId]?.placeId);
+
+        const payload = {
+            place: {
+                google_place_id: contentData[selectedPin!.contentId]?.placeId,
+            },
+            text: newReview.text,
+            rating: newReview.rating,
+        };
+        const response = await axios.post(POST_REVIEW_FROM_USER_URL, payload);
+
+        setContentData((prevContentData) => ({
+            ...prevContentData,
+            [selectedPin!.contentId]: {
+                ...prevContentData[selectedPin!.contentId],
+                customReviews: [
+                    ...prevContentData[selectedPin!.contentId].customReviews,
+                    {
+                        authorName: response.data.username,
+                        rating: newReview.rating,
+                        text: newReview.text,
+                        time: response.data.review.timestamp,
+                    },
+                ],
+            },
+        }));
+
+        toast({
+            title: "Restaurant review successfully added.",
+            description: `Your review of this specific restaurant named ${
+                contentData[selectedPin!.contentId].placeName
+            } should should now be listed. Please consider that your rating will not affect the overall rating of this restaurant`,
+        });
     };
 
     const handleSearch = async () => {
         setSearchLoading(true); //change search text to Searching...
 
         toast({
-            title: "Search pending.",
-            description: "Please wait while we search for restaurants matching your query",
+            title: "Search pending...",
+            description: "Please wait while we search for restaurants matching your query.",
         });
 
         const userInfoResponse = await axios.get(USER_INFO_API_URL);
@@ -561,7 +593,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         }
                     }}
                 >
-                    <SheetContent side="right" className="overflow-y-auto w-[30vw] sm:max-w-xl">
+                    <SheetContent side="right" className="overflow-y-auto w-96 sm:max-w-xl">
                         {selectedPin && (
                             <div className="space-y-6">
                                 <SheetHeader className="text-center">
@@ -669,9 +701,43 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     </div>
                                 </div>
 
+                                {/* Display custom reviews */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xl font-semibold text-black dark:text-white">
+                                        Reviews from our Users
+                                    </h3>
+                                    {contentData[selectedPin.contentId]?.customReviews.length > 0 ? (
+                                        <div className="space-y-4">
+                                            {contentData[selectedPin.contentId]?.customReviews.map((review, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
+                                                >
+                                                    <p className="font-semibold text-lg text-black dark:text-white">
+                                                        {review.authorName}
+                                                    </p>
+                                                    <p className="text-yellow-400">Rating: {review.rating} / 5</p>
+                                                    <p className="mt-2 text-black dark:text-white">{review.text}</p>
+                                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
+                                                        {new Date(review.time * 1000).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
+                                            <p className="text-black dark:text-white">
+                                                None of our users have left a review for this restaurant.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
                                 {/* Display Reviews */}
                                 <div className="space-y-4">
-                                    <h3 className="text-xl font-semibold text-black dark:text-white">Reviews</h3>
+                                    <h3 className="text-xl font-semibold text-black dark:text-white">
+                                        Reviews from Google
+                                    </h3>
                                     {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
                                         <div className="space-y-4">
                                             {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
@@ -692,7 +758,9 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         </div>
                                     ) : (
                                         <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
-                                            <p className="text-black dark:text-white">No reviews available.</p>
+                                            <p className="text-black dark:text-white">
+                                                No reviews are available from Google.
+                                            </p>
                                         </div>
                                     )}
                                 </div>

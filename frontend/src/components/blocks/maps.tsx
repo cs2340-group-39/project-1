@@ -228,7 +228,6 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         const payload = {
             location: location,
             location_name: locationName,
-            search_mode: searchMode,
             cuisine_type: cuisineType,
             query: query,
             radius: radius,
@@ -645,53 +644,10 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         as="button"
                                         onClick={handleSearch}
                                     >
-                                        Search
+                                        { searchLoading ? "Searching..." : "Search" }
                                     </HoverBorderGradient>
                                 </div>
                             )}
-                            <div className="space-y-2">
-                                <Label htmlFor="searchMode">Search Mode</Label>
-                                <Select value={searchMode} onValueChange={setSearchMode}>
-                                    <SelectTrigger id="searchMode">
-                                        <SelectValue placeholder="Select search mode" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
-                                        <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
-                                        <SelectItem value="location">Location</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="radius">Radius (meters): {radius}</Label>
-                                <Slider
-                                    id="radius"
-                                    min={100}
-                                    max={5000}
-                                    step={100}
-                                    value={[radius]}
-                                    onValueChange={(value) => setRadius(value[0])}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="rating">Minimum Rating: {rating}</Label>
-                                <Slider
-                                    id="rating"
-                                    min={1}
-                                    max={5}
-                                    step={0.1}
-                                    value={[rating]}
-                                    onValueChange={(value) => setRating(value[0])}
-                                />
-                            </div>
-                            <HoverBorderGradient
-                                containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                                as="button"
-                                onClick={handleSearch}
-                            >
-                                { searchLoading ? "Searching..." : "Search" }
-                            </HoverBorderGradient>
                         </div>
                     </CardContent>
                 </Card>

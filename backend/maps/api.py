@@ -79,9 +79,9 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         if not created:
             custom_place_reviews = place_model.reviews_for_place.all()
 
-        is_favorite_place = False
+        """is_favorite_place = False
         if not created:
-            is_favorite_place = place["place_id"] in favorite_google_place_ids
+            is_favorite_place = place["place_id"] in favorite_google_place_ids """
 
         response.append({
             "place_id": place["place_id"],
@@ -125,7 +125,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             "photo_url": (
                 f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={place_result['photos'][0]['photo_reference']}&key=${GOOGLE_API_KEY}"
             ),  # New field for photo URL
-            "is_favorite_place": is_favorite_place,
+            "is_favorite_place": True,
         })
 
     return response

@@ -52,7 +52,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     profile = UserProfile.objects.get(user=request.user)
     favorite_google_place_ids = [favorite_place["google_place_id"] for favorite_place in profile.favorite_places]
 
-    if params.search_mode not in ["cuisine_type", "restaurant_name", "location"]:
+    """if params.search_mode not in ["cuisine_type", "restaurant_name", "location"]:
         return {"status": HTTPStatus.BAD_REQUEST, "message": "Unsupported search mode."}
 
     if params.search_mode == "cuisine_type":
@@ -62,8 +62,18 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     if params.search_mode == "location":
         result = gmaps.places(
             location=params.location, query=f"search for restaurants on: {params.query}", radius=params.radius
-        )
+        ) """
 
+    query = ""
+    if params.location_name != "":
+        query += f"Search for restaurants near {params.location_name}"
+    if params.query == "cuisine_type":
+        query += f", with cuisine type: {params.cuisine_type}"
+    if params.query == "restaurant_name":
+        query += f", and restaurant name: {params.restaurant_name}"
+
+    result = gmaps.places(location=params.location, query=query, radius=params.radius, type=[ 'restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway' ])
+    # result = gmaps.places(location={-33.8666, 151.1958}, query="Italian", radius = params.radius, type=['restaurant'])
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
         matches = re.findall(pattern, address_string)

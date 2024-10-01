@@ -124,8 +124,6 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const filtersRef = useRef<HTMLDivElement>(null);
     const presetsRef = useRef<HTMLDivElement>(null);
 
-    // ... (rest of the component logic remains the same)
-
     useEffect(() => {
         if (filtersRef.current) {
             filtersRef.current.style.maxHeight = filtersOpen ? `${filtersRef.current.scrollHeight}px` : "0";

@@ -13,7 +13,7 @@ import ToasterLayout from "../../layouts/toaster-layout";
 import "../../globals.css";
 
 function ProfilePage(): ReactNode {
-    const [profilePage, setProfilePage] = useState("change-email-form");
+    const [profilePage, setProfilePage] = useState("user-favorite-places-card");
 
     const renderForm = () => {
         switch (profilePage) {

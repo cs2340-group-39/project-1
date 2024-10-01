@@ -74,7 +74,7 @@ export function CodeForm() {
             if (error.response.data.status == 409) {
                 newErrorMessages.push("You are already authenticated. Log out to create a new account.");
             } else {
-                newErrorMessages.push("Invalid Username or Password.");
+                newErrorMessages.push("Invalid code.");
             }
         } finally {
             setErrorMessages(newErrorMessages);

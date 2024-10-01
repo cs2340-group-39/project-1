@@ -61,6 +61,7 @@ interface PlaceReview {
 }
 
 interface Content {
+    photoUrl: string;
     contactInfo: {
         address: {
             countryName: string;
@@ -92,6 +93,9 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const mapRef: MutableRefObject<mapboxgl.Map> = useRef();
     const deckOverlayRef: MutableRefObject<MapboxOverlay | null> = useRef(null);
 
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const [presetsOpen, setPresetsOpen] = useState(false);
+
     const [lightPreset, setLightPreset] = useState("day");
     const [showPlaceLabels, setShowPlaceLabels] = useState(true);
     const [showPOILabels, setShowPOILabels] = useState(true);
@@ -102,10 +106,15 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
     const [zoom, setZoom] = useState(15.1);
 
+    // @ts-ignore
     const [query, setQuery] = useState("");
+    // @ts-ignore
     const [searchMode, setSearchMode] = useState("cuisine_type");
+    const [locationName, setLocation] = useState('');
+    const [cuisineType, setCuisineType] = useState('');
+    const [restaurantName, setRestaurantName] = useState('');
     const [radius, setRadius] = useState(1000);
-    const [rating, setRating] = useState(4.0);
+    const [rating, setRating] = useState(1.0);
 
     // @ts-ignore
     const [currentUserInfo, setCurrentUserInfo] = useState({} as UserInfo);
@@ -153,10 +162,13 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
 
         const payload = {
             location: location,
+            location_name: locationName,
             search_mode: searchMode,
+            cuisine_type: cuisineType,
             query: query,
             radius: radius,
             rating: rating,
+            restaurant_name: restaurantName,
         };
 
         const searchResponse = await axios.post(PLACES_SEARCH_API_URL, payload);
@@ -173,6 +185,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             });
 
             newContentData[itId] = {
+                photoUrl: placeData.photos?.[0]?.photo_url || '',  // Safely access the first photo's URL if it exists
                 contactInfo: {
                     address: {
                         countryName: placeData.contact_info.address.country_name,
@@ -362,109 +375,164 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
             <div className="relative h-screen w-screen overflow-hidden">
                 {/* @ts-ignore */}
                 <div ref={mapContainerRef} className="h-full w-full" />
-                <Card className="absolute left-4 top-4 w-64">
+                {/* Map Presets Dropdown */}
+                <Card className="absolute left-80 top-4 w-64">
                     <CardContent className="p-4">
                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="lightPreset">Light Preset</Label>
-                                <Select value={lightPreset} onValueChange={setLightPreset}>
-                                    <SelectTrigger id="lightPreset">
-                                        <SelectValue placeholder="Select light preset" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="dawn">Dawn</SelectItem>
-                                        <SelectItem value="day">Day</SelectItem>
-                                        <SelectItem value="dusk">Dusk</SelectItem>
-                                        <SelectItem value="night">Night</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <div onClick={() => setPresetsOpen(!presetsOpen)} className="cursor-pointer">
+                                <h3 className="text-lg font-semibold">Map Presets</h3>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="showPlaceLabels">Show place labels</Label>
-                                <Switch
-                                    id="showPlaceLabels"
-                                    checked={showPlaceLabels}
-                                    onCheckedChange={setShowPlaceLabels}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="showPOILabels">Show POI labels</Label>
-                                <Switch id="showPOILabels" checked={showPOILabels} onCheckedChange={setShowPOILabels} />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="showRoadLabels">Show road labels</Label>
-                                <Switch
-                                    id="showRoadLabels"
-                                    checked={showRoadLabels}
-                                    onCheckedChange={setShowRoadLabels}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="showTransitLabels">Show transit labels</Label>
-                                <Switch
-                                    id="showTransitLabels"
-                                    checked={showTransitLabels}
-                                    onCheckedChange={setShowTransitLabels}
-                                />
-                            </div>
+                            {presetsOpen && (
+                                <div className="space-y-4 mt-2">
+                                    {/* Light Preset Dropdown */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lightPreset">Light Preset</Label>
+                                        <Select value={lightPreset} onValueChange={setLightPreset}>
+                                            <SelectTrigger id="lightPreset">
+                                                <SelectValue placeholder="Select light preset" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="dawn">Dawn</SelectItem>
+                                                <SelectItem value="day">Day</SelectItem>
+                                                <SelectItem value="dusk">Dusk</SelectItem>
+                                                <SelectItem value="night">Night</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* Show Place Labels Toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="showPlaceLabels">Show place labels</Label>
+                                        <Switch
+                                            id="showPlaceLabels"
+                                            checked={showPlaceLabels}
+                                            onCheckedChange={setShowPlaceLabels}
+                                        />
+                                    </div>
+
+                                    {/* Show POI Labels Toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="showPOILabels">Show POI labels</Label>
+                                        <Switch id="showPOILabels" checked={showPOILabels} onCheckedChange={setShowPOILabels} />
+                                    </div>
+
+                                    {/* Show Road Labels Toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="showRoadLabels">Show road labels</Label>
+                                        <Switch
+                                            id="showRoadLabels"
+                                            checked={showRoadLabels}
+                                            onCheckedChange={setShowRoadLabels}
+                                        />
+                                    </div>
+
+                                    {/* Show Transit Labels Toggle */}
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="showTransitLabels">Show transit labels</Label>
+                                        <Switch
+                                            id="showTransitLabels"
+                                            checked={showTransitLabels}
+                                            onCheckedChange={setShowTransitLabels}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="absolute bottom-4 left-4 w-64">
+                {/* Filters Dropdown */}
+                <Card className="absolute left-4 top-4 w-64">
                     <CardContent className="p-4">
                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="query">Search Query</Label>
-                                <Input
-                                    id="query"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Enter search query"
-                                />
+                            <div onClick={() => setFiltersOpen(!filtersOpen)} className="cursor-pointer">
+                                <h3 className="text-lg font-semibold">Filters</h3>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="searchMode">Search Mode</Label>
-                                <Select value={searchMode} onValueChange={setSearchMode}>
-                                    <SelectTrigger id="searchMode">
-                                        <SelectValue placeholder="Select search mode" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
-                                        <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
-                                        <SelectItem value="location">Location</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="radius">Radius (meters): {radius}</Label>
-                                <Slider
-                                    id="radius"
-                                    min={100}
-                                    max={5000}
-                                    step={100}
-                                    value={[radius]}
-                                    onValueChange={(value) => setRadius(value[0])}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="rating">Minimum Rating: {rating}</Label>
-                                <Slider
-                                    id="rating"
-                                    min={1}
-                                    max={5}
-                                    step={0.1}
-                                    value={[rating]}
-                                    onValueChange={(value) => setRating(value[0])}
-                                />
-                            </div>
-                            <HoverBorderGradient
-                                containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                                as="button"
-                                onClick={handleSearch}
-                            >
-                                Search
-                            </HoverBorderGradient>
+                            {filtersOpen && (
+                                <div className="space-y-4 mt-2">
+                                    {/* Location Input */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="location">Location</Label>
+                                        <Input
+                                            id="location"
+                                            value={locationName}
+                                            onChange={(e) => setLocation(e.target.value)}
+                                            placeholder="Enter location"
+                                        />
+                                    </div>
+
+                                    {/* Cuisine Type Input */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="cuisineType">Cuisine Type</Label>
+                                        <Input
+                                            id="cuisineType"
+                                            value={cuisineType}
+                                            onChange={(e) => setCuisineType(e.target.value)}
+                                            placeholder="Enter cuisine type"
+                                        />
+                                    </div>
+
+                                    {/* Restaurant Name Input */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="restaurantName">Restaurant Name</Label>
+                                        <Input
+                                            id="restaurantName"
+                                            value={restaurantName}
+                                            onChange={(e) => setRestaurantName(e.target.value)}
+                                            placeholder="Enter restaurant name"
+                                        />
+                                    </div>
+
+                                    {/* Query Parameter Dropdown */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="queryType">Query Type</Label>
+                                        <Select value={query} onValueChange={setQuery}>
+                                            <SelectTrigger id="queryType">
+                                                <SelectValue placeholder="Select query type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
+                                                <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* Radius Slider */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="radius">Radius (meters): {radius}</Label>
+                                        <Slider
+                                            id="radius"
+                                            min={100}
+                                            max={5000}
+                                            step={100}
+                                            value={[radius]}
+                                            onValueChange={(value) => setRadius(value[0])}
+                                        />
+                                    </div>
+
+                                    {/* Rating Slider */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="rating">Minimum Rating: {rating}</Label>
+                                        <Slider
+                                            id="rating"
+                                            min={1}
+                                            max={5}
+                                            step={0.1}
+                                            value={[rating]}
+                                            onValueChange={(value) => setRating(value[0])}
+                                        />
+                                    </div>
+
+                                    {/* Search Button */}
+                                    <HoverBorderGradient
+                                        containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                        className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                        as="button"
+                                        onClick={handleSearch}
+                                    >
+                                        Search
+                                    </HoverBorderGradient>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -489,8 +557,18 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     </SheetDescription>
                                 </SheetHeader>
 
+                                {/* Display Image */}
+                                <div className="mb-4">
+                                    <img
+                                        src={contentData[selectedPin.contentId]?.photoUrl || '/path/to/default-image.jpg'}
+                                        alt={contentData[selectedPin.contentId]?.placeName || 'Restaurant'}
+                                        className="w-full h-48 object-cover rounded-lg"
+                                    />
+                                </div>
+
                                 {/* Display Contact Info */}
-                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                <div
+                                    className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
                                         Contact Information
                                     </h3>
@@ -528,7 +606,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 </div>
 
                                 {/* Write a Review */}
-                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                <div
+                                    className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
                                         Write a Review
                                     </h3>
@@ -596,13 +675,15 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
+                                        <div
+                                            className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
                                             <p className="text-black dark:text-white">No reviews available.</p>
                                         </div>
                                     )}
                                 </div>
 
-                                <SheetClose className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                                <SheetClose
+                                    className="mt-6 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
                                     Close
                                 </SheetClose>
                             </div>

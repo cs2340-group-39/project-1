@@ -45,9 +45,6 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     """
     response = []
 
-    if params.search_mode not in ["cuisine_type", "restaurant_name", "location"]:
-        return {"status": HTTPStatus.BAD_REQUEST, "message": "Unsupported search mode."}
-
     if params.search_mode == "cuisine_type":
         result = gmaps.places(location=params.location, query=f"cuisine type: {params.query}", radius=params.radius)
     if params.search_mode == "restaurant_name":
@@ -56,6 +53,16 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         result = gmaps.places(
             location=params.location, query=f"search for restaurants on: {params.query}", radius=params.radius
         )
+
+    query = ""
+    if params.location_name != "":
+        query += f"Search for restaurants near {params.location_name}"
+    if params.query == "cuisine_type":
+        query += f", with cuisine type: {params.cuisine_type}"
+    if params.query == "restaurant_name":
+        query += f", and restaurant name: {params.restaurant_name}"
+
+    result = gmaps.places(location=params.location, query=query, radius=params.radius, type=[ 'restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway' ])
 
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
@@ -116,6 +123,9 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                 }
                 for custom_review in custom_place_reviews
             ],
+            "photo_url": (
+                f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={place_result['photos'][0]['photo_reference']}&key=${GOOGLE_API_KEY}"
+            ),  # New field for photo URL
         })
 
     return response

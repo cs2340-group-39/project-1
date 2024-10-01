@@ -299,7 +299,11 @@ export function ChangeEmailForm() {
                 email: inputs.email,
             };
 
+            console.log('Payload:', payload);
+
             const response = await axios.post(ALLAUTH_API_URL, payload);
+
+            console.log('Response:', response);
 
             toast({
                 title: "Email successfully added",

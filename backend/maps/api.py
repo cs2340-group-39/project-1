@@ -7,6 +7,7 @@ import googlemaps
 import pytz
 from django.http import HttpRequest
 from ninja import NinjaAPI
+from users.models import UserProfile
 
 from .models import Place
 from .schemas import SearchParams
@@ -43,7 +44,13 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         "rating": 4.0
     }
     """
+    if not request.user.is_authenticated:
+        return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
+
     response = []
+
+    profile = UserProfile.objects.get(user=request.user)
+    favorite_google_place_ids = [favorite_place["google_place_id"] for favorite_place in profile.favorite_places]
 
     if params.search_mode not in ["cuisine_type", "restaurant_name", "location"]:
         return {"status": HTTPStatus.BAD_REQUEST, "message": "Unsupported search mode."}
@@ -71,11 +78,15 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             continue
 
         place_result = gmaps.place(place_id=place["place_id"], reviews_sort="most_relevant")["result"]
-        place_model_object, created = Place.objects.get_or_create(google_place_id=place["place_id"])
+        place_model, created = Place.objects.get_or_create(google_place_id=place["place_id"])
 
         custom_place_reviews = []
         if not created:
-            custom_place_reviews = place_model_object.reviews_for_place.all()
+            custom_place_reviews = place_model.reviews_for_place.all()
+
+        is_favorite_place = False
+        if not created:
+            is_favorite_place = place["place_id"] in favorite_google_place_ids
 
         response.append({
             "place_id": place["place_id"],
@@ -116,6 +127,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                 }
                 for custom_review in custom_place_reviews
             ],
+            "is_favorite_place": is_favorite_place,
         })
 
     return response

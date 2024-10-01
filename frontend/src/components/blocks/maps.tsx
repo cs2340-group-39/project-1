@@ -34,6 +34,7 @@ const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
 // const GET_FAVORITE_RESTAURANTS_URL = "http://127.0.0.1/users/api/get_favorite_restaurants";
 // const GET_REVIEWS_FOR_USER_URL = "http://127.0.0.1/users/api/get_reviews";
 const POST_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/add_favorite_place";
+const PUT_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/remove_favorite_place";
 // const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1/users/api/add_review";
 
 interface HashTable<T> {
@@ -77,6 +78,7 @@ interface Content {
     rating: number;
     reviews: PlaceReview[];
     customReviews: PlaceReview[];
+    isFavoritePlace: boolean;
 }
 
 interface MapsData {
@@ -101,19 +103,14 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
     // @ts-ignore
     const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
     const [zoom, setZoom] = useState(15.1);
-
     const [query, setQuery] = useState("");
     const [searchMode, setSearchMode] = useState("cuisine_type");
     const [radius, setRadius] = useState(1000);
     const [rating, setRating] = useState(4.0);
-
     // @ts-ignore
     const [currentUserInfo, setCurrentUserInfo] = useState({} as UserInfo);
     const [pinData, setPinData] = useState([] as Pin[]);
-    // @ts-ignore
     const [contentData, setContentData] = useState({} as HashTable<Content>);
-
-    // @ts-ignore
     const [newReview, setNewReview] = useState({ text: "", rating: 0 });
 
     const handleSaveAsFavorite = async () => {
@@ -122,8 +119,38 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         };
         await axios.post(POST_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
 
+        setContentData((prevContentData) => ({
+            ...prevContentData,
+            [selectedPin!.contentId]: {
+                ...prevContentData[selectedPin!.contentId],
+                isFavoritePlace: true,
+            },
+        }));
+
         toast({
             title: "Restaurant successfully added to favorites.",
+            description: `This specific restaurant named ${
+                contentData[selectedPin!.contentId].placeName
+            } should now be in your favorite places.`,
+        });
+    };
+
+    const handleRemoveFromFavorites = async () => {
+        const payload = {
+            google_place_id: contentData[selectedPin!.contentId]!.placeId,
+        };
+        await axios.put(PUT_FAVORITE_RESTAURANT_FOR_USER_URL, payload);
+
+        setContentData((prevContentData) => ({
+            ...prevContentData,
+            [selectedPin!.contentId]: {
+                ...prevContentData[selectedPin!.contentId],
+                isFavoritePlace: false,
+            },
+        }));
+
+        toast({
+            title: "Restaurant successfully removed from favorites.",
             description: `This specific restaurant named ${
                 contentData[selectedPin!.contentId].placeName
             } should now be in your favorite places.`,
@@ -135,14 +162,12 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         console.log("Review for placeId:", contentData[selectedPin!.contentId]?.placeId);
     };
 
-    const getLightPresetByHour = (hour: number) => {
-        if (hour >= 5 && hour < 8) return "dawn";
-        if (hour >= 8 && hour < 18) return "day";
-        if (hour >= 18 && hour < 21) return "dusk";
-        return "night";
-    };
-
     const handleSearch = async () => {
+        toast({
+            title: "Search pending.",
+            description: "Please wait while we search for restaurants matching your query",
+        });
+
         const userInfoResponse = await axios.get(USER_INFO_API_URL);
         const location = {
             lat: userInfoResponse.data.latitude,
@@ -203,6 +228,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                         time: customReview.time,
                     };
                 }),
+                isFavoritePlace: placeData.is_favorite_place,
             };
 
             itId++;
@@ -212,6 +238,13 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
         setContentData(newContentData);
 
         console.log(newContentData);
+    };
+
+    const getLightPresetByHour = (hour: number) => {
+        if (hour >= 5 && hour < 8) return "dawn";
+        if (hour >= 8 && hour < 18) return "day";
+        if (hour >= 18 && hour < 21) return "dusk";
+        return "night";
     };
 
     useEffect(() => {
@@ -251,11 +284,32 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     layers: [
                         new ScenegraphLayer<Pin>({
                             id: "ScenegraphLayer",
-                            data: pinData,
+                            data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
                             getPosition: (d: Pin) => [d.lng, d.lat, 0],
                             getOrientation: (_: Pin) => [180, 0, 0],
-                            scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
+                            scenegraph: new URL("./3d-models/favorite-pin.gltf", import.meta.url).href,
                             sizeScale: 30,
+                            _lighting: "pbr",
+                            pickable: true,
+                            autoHighlight: true,
+                            onClick: (info) => {
+                                if (info.object) {
+                                    setSelectedPin(info.object);
+                                    mapRef.current.flyTo({
+                                        center: [info.object.lng, info.object.lat],
+                                        zoom: 17,
+                                        duration: 2000,
+                                    });
+                                }
+                            },
+                        }),
+                        new ScenegraphLayer<Pin>({
+                            id: "ScenegraphLayer",
+                            data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
+                            getPosition: (d: Pin) => [d.lng, d.lat, 0],
+                            getOrientation: (_: Pin) => [180, 0, 0],
+                            scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url).href,
+                            sizeScale: 30, // Apply adjusted sizeScale here
                             _lighting: "pbr",
                             pickable: true,
                             autoHighlight: true,
@@ -322,10 +376,31 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 layers: [
                     new ScenegraphLayer<Pin>({
                         id: "ScenegraphLayer",
-                        data: pinData,
+                        data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
                         getPosition: (d: Pin) => [d.lng, d.lat, 0],
                         getOrientation: (_: Pin) => [180, 0, 0],
-                        scenegraph: "https://raw.githubusercontent.com/googlemaps/js-samples/main/assets/pin.gltf",
+                        scenegraph: new URL("./3d-models/favorite-pin.gltf", import.meta.url).href,
+                        sizeScale: sizeScale,
+                        _lighting: "pbr",
+                        pickable: true,
+                        autoHighlight: true,
+                        onClick: (info) => {
+                            if (info.object) {
+                                setSelectedPin(info.object);
+                                mapRef.current.flyTo({
+                                    center: [info.object.lng, info.object.lat],
+                                    zoom: 17,
+                                    duration: 2000,
+                                });
+                            }
+                        },
+                    }),
+                    new ScenegraphLayer<Pin>({
+                        id: "ScenegraphLayer",
+                        data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
+                        getPosition: (d: Pin) => [d.lng, d.lat, 0],
+                        getOrientation: (_: Pin) => [180, 0, 0],
+                        scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url).href,
                         sizeScale: sizeScale, // Apply adjusted sizeScale here
                         _lighting: "pbr",
                         pickable: true,
@@ -516,14 +591,25 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         >
                                             View on Google Maps
                                         </LinkPreview>
-                                        <HoverBorderGradient
-                                            containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                            className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                                            as="button"
-                                            onClick={handleSaveAsFavorite}
-                                        >
-                                            Save as Favorite
-                                        </HoverBorderGradient>
+                                        {contentData[selectedPin.contentId]?.isFavoritePlace ? (
+                                            <HoverBorderGradient
+                                                containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                                as="button"
+                                                onClick={handleRemoveFromFavorites}
+                                            >
+                                                Remove from favorites
+                                            </HoverBorderGradient>
+                                        ) : (
+                                            <HoverBorderGradient
+                                                containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
+                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                                as="button"
+                                                onClick={handleSaveAsFavorite}
+                                            >
+                                                Save as Favorite
+                                            </HoverBorderGradient>
+                                        )}
                                     </div>
                                 </div>
 

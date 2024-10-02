@@ -11,3 +11,5 @@ ruff
 django-ninja
 googlemaps
 pytz
+torch
+sentence-transformers

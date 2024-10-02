@@ -130,7 +130,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             "place_name": place["name"],
             "contact_info": {
                 "address": parse_address(place_result["adr_address"]),
-                "phone_number": place_result.get("international_phone_number"),
+                "phone_number": place_result.get("international_phone_number") if place_result.get("international_phone_number") else "No phone number available",
                 "google_maps_page": place_result.get("url"),
             },
             "location": {
@@ -165,7 +165,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                 for custom_review in custom_place_reviews
             ],
             "is_favorite_place": is_favorite_place,
-            "description": description,
+            "description": description if description else "No description available.",
             "cuisine_type": cuisine_type,
         })
 

@@ -116,11 +116,11 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             "Fast Food Chain",
             "Diner",
             "Original Restaurant",
-            "Pub",
+            "Bar, Pub, or Bistro",
             "Pizza Place",
             "Burger Joint",
-            "Steakhouse",
             "Seafood",
+            "Family Restaurant"
         ]
         top_cuisine_types = predict_top_cuisines(description if description else place["name"], cuisine_types, top_k=2)
 

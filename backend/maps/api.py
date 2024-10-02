@@ -18,7 +18,7 @@ api = NinjaAPI(urls_namespace="maps")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer("distiluse-base-multilingual-cased-v1")
 
 
 def predict_top_cuisines(description, cuisine_types, top_k=3):
@@ -26,8 +26,7 @@ def predict_top_cuisines(description, cuisine_types, top_k=3):
     cuisine_embeddings = model.encode(cuisine_types, convert_to_tensor=True)
     cosine_scores = util.cos_sim(description_embedding, cuisine_embeddings)[0]
     top_results = torch.topk(cosine_scores, k=top_k)
-    top_cuisines = [cuisine_types[idx] for score, idx in
-                    zip(top_results.values, top_results.indices)]
+    top_cuisines = [cuisine_types[idx] for score, idx in zip(top_results.values, top_results.indices)]
     return top_cuisines
 
 
@@ -76,7 +75,12 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     if params.query == "restaurant_name":
         query += f"; Restaurant name: {params.restaurant_name}"
 
-    result = gmaps.places(location=search_location, query=query, radius=params.radius, type=[ 'restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway' ])
+    result = gmaps.places(
+        location=search_location,
+        query=query,
+        radius=params.radius,
+        type=["restaurant", "bakery", "cafe", "meal_delivery", "meal_takeaway"],
+    )
 
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
@@ -127,24 +131,45 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             "Halal",
             "Kosher",
             "Coffee",
-            "Cafe",
-            "Fast Food",
-            "Pub",
+            "American Restaurant",
+            "Bakery",
             "Bar",
-            "Breakfast Food",
-            "Sit Down Restaurant",
-            "Grill",
-            "Diner",
-            # General Food Items
-            "Pizza",
-            "Seafood",
-            "Burger",
-            "Tacos",
-            "Chicken Wings",
-            "Chili",
-            "Dessert",
-            "Sandwich",
-            "Sushi",
+            "Barbecue Restaurant",
+            "Brazilian Restaurant",
+            "Breakfast Restaurant",
+            "Brunch Restaurant",
+            "Cafe",
+            "Chinese Restaurant",
+            "Coffee Shop",
+            "Fast Food Restaurant",
+            "French Restaurant",
+            "Greek Restaurant",
+            "Hamburger Restaurant",
+            "Ice Cream Shop",
+            "Indian Restaurant",
+            "Indonesian Restaurant",
+            "Italian Restaurant",
+            "Japanese Restaurant",
+            "Korean Restaurant",
+            "Lebanese Restaurant",
+            "Meal Delivery",
+            "Meal Takeaway",
+            "Mediterranean Restaurant",
+            "Mexican Restaurant",
+            "Middle Eastern Restaurant",
+            "Pizza Restaurant",
+            "Ramen Restaurant",
+            "Restaurant",
+            "Sandwich Shop",
+            "Seafood Restaurant",
+            "Spanish Restaurant",
+            "Steak House",
+            "Sushi Restaurant",
+            "Thai Restaurant",
+            "Turkish Restaurant",
+            "Vegan Restaurant",
+            "Vegetarian Restaurant",
+            "Vietnamese Restaurant",
         ]
         top_cuisine_types = predict_top_cuisines(description if description else place["name"], cuisine_types, top_k=2)
 

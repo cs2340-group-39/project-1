@@ -18,7 +18,7 @@ api = NinjaAPI(urls_namespace="maps")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def predict_top_cuisines(description, cuisine_types, top_k=3):
@@ -26,8 +26,7 @@ def predict_top_cuisines(description, cuisine_types, top_k=3):
     cuisine_embeddings = model.encode(cuisine_types, convert_to_tensor=True)
     cosine_scores = util.cos_sim(description_embedding, cuisine_embeddings)[0]
     top_results = torch.topk(cosine_scores, k=top_k)
-    top_cuisines = [cuisine_types[idx] for score, idx in
-                    zip(top_results.values, top_results.indices)]
+    top_cuisines = [cuisine_types[idx] for score, idx in zip(top_results.values, top_results.indices)]
     return top_cuisines
 
 
@@ -76,7 +75,12 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     if params.query == "restaurant_name":
         query += f"; Restaurant name: {params.restaurant_name}"
 
-    result = gmaps.places(location=search_location, query=query, radius=params.radius, type=[ 'restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway' ])
+    result = gmaps.places(
+        location=search_location,
+        query=query,
+        radius=params.radius,
+        type=["restaurant", "bakery", "cafe", "meal_delivery", "meal_takeaway"],
+    )
 
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
@@ -101,26 +105,50 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         is_favorite_place = False
         if not created:
             is_favorite_place = place["place_id"] in favorite_google_place_ids
-  
-        description = place_result.get("editorial_summary")["overview"] if place_result.get("editorial_summary") else None
+
+        description = (
+            place_result.get("editorial_summary")["overview"] if place_result.get("editorial_summary") else None
+        )
         cuisine_types = [
-            "American",
-            "Italian",
-            "Mexican",
-            "Japanese",
-            "Thai",
-            "Chinese",
-            "Indian",
-            "European",
+            "American Restaurant",
+            "Bakery",
+            "Bar",
+            "Barbecue Restaurant",
+            "Brazilian Restaurant",
+            "Breakfast Restaurant",
+            "Brunch Restaurant",
+            "Cafe",
+            "Chinese Restaurant",
             "Coffee Shop",
-            "Fast Food Chain",
-            "Diner",
-            "Original Restaurant",
-            "Bar, Pub, or Bistro",
-            "Pizza Place",
-            "Burger Joint",
-            "Seafood",
-            "Family Restaurant"
+            "Fast Food Restaurant",
+            "French Restaurant",
+            "Greek Restaurant",
+            "Hamburger Restaurant",
+            "Ice Cream Shop",
+            "Indian Restaurant",
+            "Indonesian Restaurant",
+            "Italian Restaurant",
+            "Japanese Restaurant",
+            "Korean Restaurant",
+            "Lebanese Restaurant",
+            "Meal Delivery",
+            "Meal Takeaway",
+            "Mediterranean Restaurant",
+            "Mexican Restaurant",
+            "Middle Eastern Restaurant",
+            "Pizza Restaurant",
+            "Ramen Restaurant",
+            "Restaurant",
+            "Sandwich Shop",
+            "Seafood Restaurant",
+            "Spanish Restaurant",
+            "Steak House",
+            "Sushi Restaurant",
+            "Thai Restaurant",
+            "Turkish Restaurant",
+            "Vegan Restaurant",
+            "Vegetarian Restaurant",
+            "Vietnamese Restaurant",
         ]
         top_cuisine_types = predict_top_cuisines(description if description else place["name"], cuisine_types, top_k=2)
 
@@ -128,15 +156,19 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         if description:
             cuisine_type = ", ".join(top_cuisine_types)
         else:
-            cuisine_type = "Our advanced prediction model predicts these cuisine types from the name of this restaurant: " + ", ".join(top_cuisine_types)
-  
+            cuisine_type = (
+                "Our advanced prediction model predicts these cuisine types from the name of this restaurant: "
+                + ", ".join(top_cuisine_types)
+            )
 
         response.append({
             "place_id": place["place_id"],
             "place_name": place["name"],
             "contact_info": {
                 "address": parse_address(place_result["adr_address"]),
-                "phone_number": place_result.get("international_phone_number") if place_result.get("international_phone_number") else "No phone number available",
+                "phone_number": place_result.get("international_phone_number")
+                if place_result.get("international_phone_number")
+                else "No phone number available",
                 "google_maps_page": place_result.get("url"),
             },
             "location": {

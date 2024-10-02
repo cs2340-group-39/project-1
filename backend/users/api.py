@@ -24,11 +24,12 @@ gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 #     })
 #     return response.json()
 
+
 @api.get("/get_favorite_places")
 def get_favorite_places(request: HttpRequest):
     if not request.user.is_authenticated:
         return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
-    
+
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
         matches = re.findall(pattern, address_string)
@@ -40,20 +41,19 @@ def get_favorite_places(request: HttpRequest):
     favorite_places = []
     for place in profile.favorite_places:
         place_result = gmaps.place(place_id=place["google_place_id"])["result"]
-        favorite_places.append(
-            {
-                "google_place_id": place["google_place_id"],
-                "place_name": place_result.get("name"),
-                "place_address": parse_address(place_result["adr_address"]),
-                "google_maps_page": place_result.get("url"),
-            }
-        )
+        favorite_places.append({
+            "google_place_id": place["google_place_id"],
+            "place_name": place_result.get("name"),
+            "place_address": parse_address(place_result["adr_address"]),
+            "google_maps_page": place_result.get("url"),
+        })
 
     return {
         "status": HTTPStatus.OK,
         "user_id": profile.user.id,
         "favorite_places": favorite_places,
     }
+
 
 @api.post("/add_favorite_place")
 def add_favorite_place(request: HttpRequest, params: PlaceSchema):
@@ -98,7 +98,7 @@ def remove_favorite_place(request: HttpRequest, params: PlaceSchema):
     profile = UserProfile.objects.get(user=request.user)
     place, created = Place.objects.get_or_create(google_place_id=params.google_place_id)
 
-    if model_to_dict(place).get("google_place_id")  not in [
+    if model_to_dict(place).get("google_place_id") not in [
         favorite_place.get("google_place_id") for favorite_place in profile.favorite_places
     ]:
         return {
@@ -123,7 +123,7 @@ def remove_favorite_place(request: HttpRequest, params: PlaceSchema):
 def get_reviews(request: HttpRequest):
     if not request.user.is_authenticated:
         return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
-    
+
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
         matches = re.findall(pattern, address_string)
@@ -133,23 +133,21 @@ def get_reviews(request: HttpRequest):
     user_reviews = []
     for review in request.user.reviews_for_user.all():
         place_result = gmaps.place(place_id=review.place.google_place_id)["result"]
-        user_reviews.append(
-            {
-                "google_place_id": review.place.google_place_id,
-                "place_name": place_result.get("name"),
-                "place_address": parse_address(place_result["adr_address"]),
-                "google_maps_page": place_result.get("url"),
-                "rating": review.rating,
-                "text": review.text,
-                "timestamp": review.timestamp,
-            }
-        )
+        user_reviews.append({
+            "google_place_id": review.place.google_place_id,
+            "place_name": place_result.get("name"),
+            "place_address": parse_address(place_result["adr_address"]),
+            "google_maps_page": place_result.get("url"),
+            "rating": review.rating,
+            "text": review.text,
+            "timestamp": review.timestamp,
+        })
 
     return {
         "status": HTTPStatus.OK,
         "user_id": request.user.id,
         "username": request.user.username,
-        "reviews": user_reviews
+        "reviews": user_reviews,
     }
 
 
@@ -159,9 +157,7 @@ def add_review(request: HttpRequest, params: PlaceReviewSchema):
         return {"status": HTTPStatus.FORBIDDEN, "msg": "User must be authenticated for this method."}
 
     place, created = Place.objects.get_or_create(google_place_id=params.place.google_place_id)
-    place_review = PlaceReview.objects.create(
-        place=place, user=request.user, rating=params.rating, text=params.text
-    )
+    place_review = PlaceReview.objects.create(place=place, user=request.user, rating=params.rating, text=params.text)
 
     return {
         "status": HTTPStatus.OK,

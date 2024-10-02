@@ -78,6 +78,7 @@ interface Content {
     customReviews: PlaceReview[];
     isFavoritePlace: boolean;
     cuisineType: string;
+    description: string;
 }
 
 interface MapsData {
@@ -303,6 +304,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 }),
                 isFavoritePlace: placeData.is_favorite_place,
                 cuisineType: placeData.cuisine_type,
+                description: placeData.description,
             };
 
             itId++;
@@ -709,16 +711,20 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 {/* Display Contact Info */}
                                 <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
-                                        Contact Information
+                                        Information
                                     </h3>
                                     <div className="space-y-2 text-black dark:text-white">
                                         <p>
-                                            <span className="font-medium">Phone:</span>{" "}
-                                            {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
+                                            <span className="font-medium">Predicted Cuisine Type:</span>{" "}
+                                            {contentData[selectedPin.contentId]?.cuisineType}
                                         </p>
                                         <p>
                                             <span className="font-medium">Description:</span>{" "}
-                                            {contentData[selectedPin.contentId]?.cuisineType}
+                                            {contentData[selectedPin.contentId]?.description}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Phone:</span>{" "}
+                                            {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
                                         </p>
                                         <p>
                                             <span className="font-medium">Address:</span>{" "}

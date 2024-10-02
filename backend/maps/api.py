@@ -18,7 +18,7 @@ api = NinjaAPI(urls_namespace="maps")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("distiluse-base-multilingual-cased-v1")
 
 
 def predict_top_cuisines(description, cuisine_types, top_k=3):

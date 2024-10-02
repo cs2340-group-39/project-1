@@ -71,6 +71,7 @@ export function SignupForm() {
         email: null,
         confirmPassword: null,
     });
+    // @ts-ignore
     const [shouldRedirect, setShouldRedirect] = useState(false);
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {

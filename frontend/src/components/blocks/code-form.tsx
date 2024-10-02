@@ -83,14 +83,16 @@ export function CodeForm() {
 
     return (
         <div className="max-w-md w-full rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black overflow-auto max-h-[75vh] z-10 relative">
-            <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">Code Form</h2>
+            <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">Email Confirmation Code Form</h2>
             <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
-                Type the code you got in your email here.
+                An email has been sent to the email address that you have provided us. If you receive a code, please
+                type code in the box below. If you haven't received a code in the email, the email will provide you with
+                further instructions on how to recover your account.
             </p>
 
             <form className="my-8" onSubmit={handleSubmit}>
                 <LabelInputContainer className="mb-8">
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="username">Code</Label>
                     <Input
                         id="code"
                         name="code"

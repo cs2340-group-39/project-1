@@ -52,28 +52,19 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
     profile = UserProfile.objects.get(user=request.user)
     favorite_google_place_ids = [favorite_place["google_place_id"] for favorite_place in profile.favorite_places]
 
-    """if params.search_mode not in ["cuisine_type", "restaurant_name", "location"]:
-        return {"status": HTTPStatus.BAD_REQUEST, "message": "Unsupported search mode."}
-
-    if params.search_mode == "cuisine_type":
-        result = gmaps.places(location=params.location, query=f"cuisine type: {params.query}", radius=params.radius)
-    if params.search_mode == "restaurant_name":
-        result = gmaps.places(location=params.location, query=f"restaurant name: {params.query}", radius=params.radius)
-    if params.search_mode == "location":
-        result = gmaps.places(
-            location=params.location, query=f"search for restaurants on: {params.query}", radius=params.radius
-        ) """
-
     query = ""
+    search_location = params.location
     if params.location_name != "":
-        query += f"Search for restaurants near {params.location_name}"
+        geocode_result = gmaps.geocode(address=params.location_name)
+        if len(geocode_result) > 0:
+            search_location = geocode_result[-0]["geometry"]["location"]
     if params.query == "cuisine_type":
-        query += f", with cuisine type: {params.cuisine_type}"
+        query += f"Cuisine type: {params.cuisine_type}"
     if params.query == "restaurant_name":
-        query += f", and restaurant name: {params.restaurant_name}"
+        query += f"; Restaurant name: {params.restaurant_name}"
 
-    result = gmaps.places(location=params.location, query=query, radius=params.radius, type=[ 'restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway' ])
-    # result = gmaps.places(location={-33.8666, 151.1958}, query="Italian", radius = params.radius, type=['restaurant'])
+    result = gmaps.places(location=search_location, query=query, radius=params.radius, type=[ 'restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway' ])
+
     def parse_address(address_string):
         pattern = r'<span class="([^"]+)">([^<]+)</span>'
         matches = re.findall(pattern, address_string)
@@ -138,6 +129,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                 for custom_review in custom_place_reviews
             ],
             "is_favorite_place": is_favorite_place,
+            "cuisine_type": place_result.get("editorial_summary")["overview"] if place_result.get("editorial_summary") else "Ambiguous Restaurant",
         })
 
     return response

@@ -77,6 +77,7 @@ interface Content {
     reviews: PlaceReview[];
     customReviews: PlaceReview[];
     isFavoritePlace: boolean;
+    cuisineType: string;
 }
 
 interface MapsData {
@@ -301,6 +302,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                     };
                 }),
                 isFavoritePlace: placeData.is_favorite_place,
+                cuisineType: placeData.cuisine_type,
             };
 
             itId++;
@@ -713,6 +715,10 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         <p>
                                             <span className="font-medium">Phone:</span>{" "}
                                             {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Description:</span>{" "}
+                                            {contentData[selectedPin.contentId]?.cuisineType}
                                         </p>
                                         <p>
                                             <span className="font-medium">Address:</span>{" "}

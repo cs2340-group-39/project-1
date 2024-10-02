@@ -104,6 +104,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
   
         description = place_result.get("editorial_summary")["overview"] if place_result.get("editorial_summary") else None
         cuisine_types = [
+            "American",
             "Italian",
             "Mexican",
             "Japanese",
@@ -111,10 +112,15 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             "Chinese",
             "Indian",
             "European",
-            "Cafe",
-            "Fast Food",
+            "Coffee Shop",
+            "Fast Food Chain",
+            "Diner",
+            "Original Restaurant",
             "Pub",
-            "Sit Down"
+            "Pizza Place",
+            "Burger Joint",
+            "Steakhouse",
+            "Seafood",
         ]
         top_cuisine_types = predict_top_cuisines(description if description else place["name"], cuisine_types, top_k=2)
 

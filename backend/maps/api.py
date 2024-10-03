@@ -5,10 +5,9 @@ from http import HTTPStatus
 
 import googlemaps
 import pytz
-import torch
+import requests
 from django.http import HttpRequest
 from ninja import NinjaAPI
-from sentence_transformers import SentenceTransformer, util
 from users.models import UserProfile
 
 from .models import Place
@@ -18,16 +17,17 @@ api = NinjaAPI(urls_namespace="maps")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
-model = SentenceTransformer("distiluse-base-multilingual-cased-v1")
 
 
-def predict_top_cuisines(description, cuisine_types, top_k=3):
-    description_embedding = model.encode(description, convert_to_tensor=True)
-    cuisine_embeddings = model.encode(cuisine_types, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(description_embedding, cuisine_embeddings)[0]
-    top_results = torch.topk(cosine_scores, k=top_k)
-    top_cuisines = [cuisine_types[idx] for score, idx in zip(top_results.values, top_results.indices)]
-    return top_cuisines
+def get_cuisine_type(place_id):
+    headers = { 
+        "X-Goog-Api-Key": GOOGLE_API_KEY,
+        "X-Goog-FieldMask": "types" 
+    }
+    response = requests.get(
+        f"https://places.googleapis.com/v1/places/{place_id}", headers=headers,
+    )
+    return " ".join([s.capitalize() for s in response.json()["types"][0].replace("_", " ").split()])
 
 
 @api.get("/get_location")
@@ -95,6 +95,11 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
         if place.get("rating") and place.get("rating") < params.rating:
             continue
 
+        distance_matrix = gmaps.distance_matrix(origins=f"place_id:{place["place_id"]}", destinations=search_location)
+        distance = distance_matrix["rows"][0]["elements"][0]["distance"]["value"]
+        if distance > params.radius:
+            continue
+
         place_result = gmaps.place(place_id=place["place_id"], reviews_sort="most_relevant")["result"]
         place_model, created = Place.objects.get_or_create(google_place_id=place["place_id"])
 
@@ -107,57 +112,7 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             is_favorite_place = place["place_id"] in favorite_google_place_ids
   
         description = place_result.get("editorial_summary")["overview"] if place_result.get("editorial_summary") else None
-        cuisine_types = [
-            "Halal",
-            "Kosher",
-            "American Restaurant",
-            "Bakery",
-            "Bar",
-            "Barbecue Restaurant",
-            "Brazilian Food",
-            "Breakfast Food",
-            "Brunch Food",
-            "Cafe",
-            "Chinese Food",
-            "Coffee Shop",
-            "Fast Food Restaurant",
-            "French Food",
-            "Greek Food",
-            "Hamburger Food",
-            "Ice Cream Shop",
-            "Indian Food",
-            "Indonesian Food",
-            "Italian Food",
-            "Japanese Food",
-            "Korean Food",
-            "Lebanese Food",
-            "Meal Delivery",
-            "Meal Takeaway",
-            "Mediterranean Food",
-            "Mexican Food",
-            "Middle Eastern Food",
-            "Pizza Food",
-            "Ramen Food",
-            "Restaurant",
-            "Sandwich",
-            "Seafood Food",
-            "Spanish Food",
-            "Steak House",
-            "Sushi Food",
-            "Thai Food",
-            "Turkish Food",
-            "Vegan Food",
-            "Vegetarian Food",
-            "Vietnamese Food",
-        ]
-        top_cuisine_types = predict_top_cuisines(description if description else place["name"], cuisine_types, top_k=2)
-
-        cuisine_type = ""
-        if description:
-            cuisine_type = ", ".join(top_cuisine_types)
-        else:
-            cuisine_type = "Our advanced prediction model predicts these cuisine types from the name of this restaurant: " + ", ".join(top_cuisine_types)
-  
+        cuisine_type = get_cuisine_type(place["place_id"])
 
         response.append({
             "place_id": place["place_id"],
@@ -199,8 +154,8 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
                 for custom_review in custom_place_reviews
             ],
             "is_favorite_place": is_favorite_place,
-            "description": description,
-            "cuisine_type": cuisine_type,
+            "description": description if description else "No Description",
+            "cuisine_type": cuisine_type if cuisine_type != "Restaurant" else "No Cuisine Type Data Available",
         })
 
     return response

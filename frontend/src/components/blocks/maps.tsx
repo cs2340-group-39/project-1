@@ -154,9 +154,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
 
         toast({
             title: "Restaurant successfully added to favorites.",
-            description: `This specific restaurant named ${
-                contentData[selectedPin!.contentId].placeName
-            } should now be in your favorite places.`,
+            description: `This specific restaurant named ${contentData[selectedPin!.contentId].placeName
+                } should now be in your favorite places.`,
         });
     };
 
@@ -176,9 +175,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
 
         toast({
             title: "Restaurant successfully removed from favorites.",
-            description: `This specific restaurant named ${
-                contentData[selectedPin!.contentId].placeName
-            } should now be in your favorite places.`,
+            description: `This specific restaurant named ${contentData[selectedPin!.contentId].placeName
+                } should now be in your favorite places.`,
         });
     };
 
@@ -226,9 +224,8 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
 
         toast({
             title: "Restaurant review successfully added.",
-            description: `Your review of this specific restaurant named ${
-                contentData[selectedPin!.contentId].placeName
-            } should should now be listed. Please consider that your rating will not affect the overall rating of this restaurant`,
+            description: `Your review of this specific restaurant named ${contentData[selectedPin!.contentId].placeName
+                } should should now be listed. Please consider that your rating will not affect the overall rating of this restaurant`,
         });
     };
 
@@ -652,7 +649,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         <Slider
                                             id="radius"
                                             min={100}
-                                            max={5000}
+                                            max={50000}
                                             step={100}
                                             value={[radius]}
                                             onValueChange={(value) => setRadius(value[0])}
@@ -715,7 +712,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     </h3>
                                     <div className="space-y-2 text-black dark:text-white">
                                         <p>
-                                            <span className="font-medium">Predicted Cuisine Type:</span>{" "}
+                                            <span className="font-medium">Cuisine Type:</span>{" "}
                                             {contentData[selectedPin.contentId]?.cuisineType}
                                         </p>
                                         <p>
@@ -776,11 +773,10 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             {[1, 2, 3, 4, 5].map((star) => (
                                                 <StarIcon
                                                     key={star}
-                                                    className={`w-6 h-6 cursor-pointer ${
-                                                        star <= newReview.rating
-                                                            ? "text-yellow-400"
-                                                            : "text-black dark:text-white"
-                                                    }`}
+                                                    className={`w-6 h-6 cursor-pointer ${star <= newReview.rating
+                                                        ? "text-yellow-400"
+                                                        : "text-black dark:text-white"
+                                                        }`}
                                                     onClick={() =>
                                                         setNewReview({
                                                             ...newReview,

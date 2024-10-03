@@ -43,7 +43,7 @@ function InfoPage({ data }: InfoPageData) {
                                 <a href="/dashboard/index/">
                                     <HoverBorderGradient
                                         containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                        className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                        className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                                         as="button"
                                     >
                                         Continue to Dashboard
@@ -55,7 +55,7 @@ function InfoPage({ data }: InfoPageData) {
                         <a href="/users/accounts/login">
                             <HoverBorderGradient
                                 containerClassName="rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                className="inline-flex border-transparent h-12 animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                                 as="button"
                             >
                                 Sign Up or Log In

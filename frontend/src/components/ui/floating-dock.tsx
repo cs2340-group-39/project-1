@@ -55,9 +55,9 @@ const FloatingDockMobile = ({
                                 <a
                                     href={item.href}
                                     key={item.title}
-                                    className="h-10 w-10 rounded-xl bg-gray-50/75 dark:bg-neutral-900/75 flex items-center justify-center backdrop-blur-2xl border-2 border-zinc-500 shadow-lg shadow-zinc-300 dark:shadow-neutral-600"
+                                    className="h-10 w-10 rounded-xl bg-gray-50/75 dark:bg-neutral-900/75 flex items-center justify-center backdrop-blur-2xl border-2 border-zinc-300 shadow-lg shadow-zinc-300 dark:shadow-neutral-600"
                                 >
-                                    <div className="h-4 w-4 dark:text-slate-400 text-slate-600  [&>*]:text-slate-600 [&>*]:stroke-slate-600 dark:[&>*]:text-slate-400 dark:[&>*]:stroke-slate-400 [&>*]:fill-none">
+                                    <div className="h-4 w-4 dark:text-zinc-300 text-slate-600  [&>*]:text-slate-600 [&>*]:stroke-slate-600 dark:[&>*]:text-zinc-300 dark:[&>*]:stroke-zinc-300 [&>*]:fill-none">
                                         {item.icon}
                                     </div>
                                 </a>
@@ -72,9 +72,9 @@ const FloatingDockMobile = ({
                 transition={{ duration: 0.3 }}
                 className="relative h-10 w-10 rounded-xl overflow-hidden shadow-2xl shadow-zinc-300 dark:shadow-zinc-600"
             >
-                <div className="absolute inset-0 border-2 border-zinc-500 rounded-xl bg-black" />
+                <div className="absolute inset-0 border-2 border-zinc-300 rounded-xl bg-black" />
                 <div className="relative z-10 h-full w-full flex items-center justify-center">
-                    <IconLayoutNavbarCollapse className="h-5 w-5 text-slate-400 [&>*]:text-slate-400 [&>*]:stroke-slate-400 [&>*]:fill-none" />
+                    <IconLayoutNavbarCollapse className="h-5 w-5 text-zinc-300 [&>*]:text-zinc-300 [&>*]:stroke-zinc-300 [&>*]:fill-none" />
                 </div>
             </motion.button>
         </div>
@@ -94,7 +94,7 @@ const FloatingDockDesktop = ({
             onMouseMove={(e) => mouseX.set(e.pageX)}
             onMouseLeave={() => mouseX.set(Infinity)}
             className={cn(
-                "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl bg-gray-50/75 dark:bg-neutral-900/75 px-4 pb-3 backdrop-blur-2xl border-2 border-zinc-500",
+                "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl bg-gray-50/75 dark:bg-neutral-900/75 px-4 pb-3 backdrop-blur-2xl border-2 border-zinc-300",
                 className
             )}
         >
@@ -163,13 +163,13 @@ function IconContainer({
                 className="aspect-square rounded-xl flex items-center justify-center relative shadow-md shadow-gray-300 dark:shadow-neutral-700"
             >
                 {/* Shimmer background */}
-                <div className="absolute inset-0 rounded-xl border-2 shadow-zinc-300 dark:shadow-zinc-600 border-zinc-500 text-white bg-black" />
+                <div className="absolute inset-0 rounded-xl border-2 shadow-zinc-300 dark:shadow-zinc-600 border-zinc-300 text-white bg-black" />
 
                 {/* Icon container */}
                 <div className="relative z-10 flex items-center justify-center w-full h-full">
                     <motion.div
                         style={{ width: widthIcon, height: heightIcon }}
-                        className="flex items-center justify-center text-slate-400 [&>*]:text-slate-400 [&>*]:stroke-slate-400 [&>*]:fill-none"
+                        className="flex items-center justify-center text-zinc-300 [&>*]:text-zinc-300 [&>*]:stroke-zinc-300 [&>*]:fill-none"
                     >
                         {icon}
                     </motion.div>
@@ -181,7 +181,7 @@ function IconContainer({
                             initial={{ opacity: 0, y: 10, x: "-50%" }}
                             animate={{ opacity: 1, y: 0, x: "-50%" }}
                             exit={{ opacity: 0, y: 2, x: "-50%" }}
-                            className="px-2 py-0.5 whitespace-pre rounded-xl bg-gray-100 border dark:bg-neutral-800 dark:border-neutral-900 dark:text-white border-gray-200 text-neutral-700 absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs shadow-sm shadow-gray-200 dark:shadow-neutral-900"
+                            className="px-2 py-0.5 whitespace-pre rounded-md bg-gray-100 border dark:bg-neutral-800 dark:border-neutral-900 dark:text-white border-gray-200 text-neutral-700 absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs shadow-sm shadow-gray-200 dark:shadow-neutral-900"
                         >
                             {title}
                         </motion.div>

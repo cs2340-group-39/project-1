@@ -28,17 +28,17 @@ const ReviewsList: React.FC<FavoritePlaceMessagesProps> = ({ favoritePlaces: fav
         <div className="min-h-[30vh] transition-all duration-300 ease-in-out" style={{ height: height }}>
             <div ref={ref} className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4">
                 {favoritePlaces.length > 0 ? (
-                    favoritePlaces.map((review, index) => (
+                    favoritePlaces.map((favoritePlace, index) => (
                         <div
                             key={index}
-                            className="bg-white dark:bg-black rounded-lg p-6 m-6 shadow-lg shadow-zinc-300 dark:shadow-zinc-600"
+                            className="bg-white dark:bg-black rounded-lg p-6 m-6 gap-6 shadow-lg shadow-zinc-300 dark:shadow-zinc-600"
                         >
-                            <h3 className="font-bold text-xl text-zinc-900 dark:text-zinc-100 mb-2">
-                                {review.placeName}
+                            <h3 className="font-bold text-xl text-zinc-900 dark:text-zinc-100 mb-6">
+                                {favoritePlace.placeName}
                             </h3>
-                            <div className="border-2 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors rounded-md p-3 mb-4">
-                                <p className="text-sm ">{review.placeAddress}</p>
-                                <LinkPreview url={review.googleMapsUrl} className="text-white">
+                            <div className="border-2 mb-6 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors rounded-md p-3 mb-4">
+                                <p className="text-sm text-zinc-300">{favoritePlace.placeAddress}</p>
+                                <LinkPreview url={favoritePlace.googleMapsUrl} className="text-white">
                                     View on Google Maps
                                 </LinkPreview>
                             </div>

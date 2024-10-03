@@ -1,5 +1,6 @@
 import { MapboxOverlay } from "@deck.gl/mapbox";
 import { ScenegraphLayer } from "@deck.gl/mesh-layers";
+import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import axios from "axios";
 import { StarIcon } from "lucide-react";
 import mapboxgl from "mapbox-gl";
@@ -515,8 +516,9 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 <Card className="absolute left-80 top-4 w-64">
                     <CardContent className="p-4">
                         <div className="space-y-4">
-                            <div onClick={() => setPresetsOpen(!presetsOpen)} className="cursor-pointer">
+                            <div onClick={() => setPresetsOpen(!presetsOpen)} className="cursor-pointer flex flex-row justify-between align-middle">
                                 <h3 className="text-lg font-semibold">Map Presets</h3>
+                                {presetsOpen ? <IconChevronUp /> : <IconChevronDown />}
                             </div>
                             <div
                                 ref={presetsRef}
@@ -587,8 +589,9 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                 <Card className="absolute left-4 top-4 w-64">
                     <CardContent className="p-4">
                         <div className="space-y-4">
-                            <div onClick={() => setFiltersOpen(!filtersOpen)} className="cursor-pointer">
+                            <div onClick={() => setFiltersOpen(!filtersOpen)} className="cursor-pointer flex flex-row justify-between align-middle">
                                 <h3 className="text-lg font-semibold">Filters</h3>
+                                {filtersOpen ? <IconChevronUp /> : <IconChevronDown />}
                             </div>
                             <div
                                 ref={filtersRef}
@@ -672,7 +675,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                     {/* Search Button */}
                                     <HoverBorderGradient
                                         containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                        className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                        className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                                         as="button"
                                         onClick={handleSearch}
                                     >
@@ -706,7 +709,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 </SheetHeader>
 
                                 {/* Display Contact Info */}
-                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                <div className="p-6 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
                                         Information
                                     </h3>
@@ -743,7 +746,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         {contentData[selectedPin.contentId]?.isFavoritePlace ? (
                                             <HoverBorderGradient
                                                 containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                                                 as="button"
                                                 onClick={handleRemoveFromFavorites}
                                             >
@@ -752,7 +755,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         ) : (
                                             <HoverBorderGradient
                                                 containerClassName="w-fit rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                                className="w-fit py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                                                 as="button"
                                                 onClick={handleSaveAsFavorite}
                                             >
@@ -763,7 +766,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                 </div>
 
                                 {/* Write a Review */}
-                                <div className="p-6 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
+                                <div className="p-6 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black">
                                     <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">
                                         Write a Review
                                     </h3>
@@ -800,7 +803,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                         />
                                         <HoverBorderGradient
                                             containerClassName="w-full rounded-md border-transparent transition duration-1000 scale-100 hover:scale-110"
-                                            className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
+                                            className="w-full py-2 inline-flex border-transparent animate-shimmer items-center justify-center rounded-md bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
                                             as="button"
                                             onClick={handleSubmitReview}
                                         >
@@ -819,7 +822,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             {contentData[selectedPin.contentId]?.customReviews.map((review, index) => (
                                                 <div
                                                     key={index}
-                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
+                                                    className="p-4 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
                                                 >
                                                     <p className="font-semibold text-lg text-black dark:text-white">
                                                         {review.authorName}
@@ -851,7 +854,7 @@ export default function Maps({ googleMapsApiKey, mapBoxAccessToken }: MapsData) 
                                             {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
                                                 <div
                                                     key={index}
-                                                    className="p-4 b-2 border-zinc-500 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
+                                                    className="p-4 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
                                                 >
                                                     <p className="font-semibold text-lg text-black dark:text-white">
                                                         {review.authorName}

@@ -35,18 +35,18 @@ const ReviewsList: React.FC<ReviewMessagesProps> = ({ reviews: reviews }) => {
                     reviews.map((review, index) => (
                         <div
                             key={index}
-                            className="bg-white dark:bg-black rounded-lg p-6 shadow-lg m-6 shadow-zinc-300 dark:shadow-zinc-600"
+                            className="bg-white dark:bg-black rounded-lg p-6 shadow-lg m-6 gap-6 shadow-zinc-300 dark:shadow-zinc-600"
                         >
-                            <h3 className="font-bold text-xl text-zinc-900 dark:text-zinc-100 mb-2">
+                            <h3 className="font-bold text-xl text-zinc-900 dark:text-zinc-100 mb-6">
                                 {review.placeName}
                             </h3>
-                            <div className="border-2 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-slate-400 transition-colors rounded-md p-3 mb-4">
-                                <p className="text-sm text-zinc-600 dark:text-zinc-300">{review.placeAddress}</p>
+                            <div className="border-2 mb-6 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors rounded-md p-3 mb-4">
+                                <p className="text-sm text-zinc-300">{review.placeAddress}</p>
                                 <LinkPreview url={review.googleMapsUrl} className="text-white">
                                     View on Google Maps
                                 </LinkPreview>
                             </div>
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center justify-between mb-6">
                                 <span className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
                                     {review.authorName}
                                 </span>
@@ -54,7 +54,7 @@ const ReviewsList: React.FC<ReviewMessagesProps> = ({ reviews: reviews }) => {
                                     <span className="font-bold text-yellow-500">{review.rating.toFixed(1)}</span>
                                 </div>
                             </div>
-                            <p className="text-zinc-600 dark:text-zinc-400 mb-2">{review.text}</p>
+                            <p className="text-zinc-600 dark:text-zinc-400 mb-6">{review.text}</p>
                             <span className="text-xs text-zinc-500 dark:text-zinc-500">
                                 {new Date(review.time * 1000).toLocaleDateString()}
                             </span>

@@ -96,9 +96,12 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
             continue
 
         distance_matrix = gmaps.distance_matrix(origins=f"place_id:{place["place_id"]}", destinations=search_location)
-        distance = distance_matrix["rows"][0]["elements"][0]["distance"]["value"]
-        if distance > params.radius:
-            continue
+        try:
+            distance = distance_matrix["rows"][0]["elements"][0]["distance"]["value"]
+            if distance > params.radius:
+                continue
+        except KeyError:
+            return []
 
         place_result = gmaps.place(place_id=place["place_id"], reviews_sort="most_relevant")["result"]
         place_model, created = Place.objects.get_or_create(google_place_id=place["place_id"])

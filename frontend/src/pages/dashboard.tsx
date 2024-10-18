@@ -8,46 +8,51 @@ import { ThemeProvider } from "../components/theme-provider";
 import "../globals.css";
 
 interface DashboardData {
-    data: {
-        username: string;
-        googleMapsApiKey: string;
-        mapBoxAccessToken: string;
-    };
+  data: {
+    username: string;
+    googleMapsApiKey: string;
+    mapBoxAccessToken: string;
+  };
 }
 
 function DashboardPage({ data }: DashboardData): ReactElement {
-    // @ts-ignore
-    const handleLogout = async () => {
-        try {
-            await axios.delete("http://127.0.0.1:8000/_allauth/browser/v1/auth/session"); // Lol this request throws a 401 every time so redirection must happen in catch block.
-        } catch (error) {
-            window.location.replace("/users/accounts/login/");
-        }
-    };
+  // @ts-ignore
+  const handleLogout = async () => {
+    try {
+      await axios.delete(
+        "http://127.0.0.1:8000/_allauth/browser/v1/auth/session"
+      ); // Lol this request throws a 401 every time so redirection must happen in catch block.
+    } catch (error) {
+      window.location.replace("/users/accounts/login/");
+    }
+  };
 
-    return (
-        <>
-            {/* <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1001 }}>
+  return (
+    <>
+      {/* <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1001 }}>
                 <Menu setActive={() => {}}>
                     <button onClick={handleLogout}>Logout</button>
                 </Menu>
             </div> */}
 
-            <div className="overflow-hidden">
-                <Maps googleMapsApiKey={data.googleMapsApiKey} mapBoxAccessToken={data.mapBoxAccessToken} />
-            </div>
-            <DashboardDock />
-        </>
-    );
+      <div className="overflow-hidden">
+        <Maps
+          googleMapsApiKey={data.googleMapsApiKey}
+          mapBoxAccessToken={data.mapBoxAccessToken}
+        />
+      </div>
+      <DashboardDock />
+    </>
+  );
 }
 
 const rootElement = document.getElementById("root")!;
 const data = JSON.parse(rootElement.getAttribute("data-context")!);
 
 createRoot(rootElement).render(
-    <StrictMode>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <DashboardPage data={data} />
-        </ThemeProvider>
-    </StrictMode>
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <DashboardPage data={data} />
+    </ThemeProvider>
+  </StrictMode>
 );

@@ -4,15 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("maps", "0004_remove_place_reviews_alter_placereview_user"),
-        ("users", "0001_initial"),
-    ]
+  dependencies = [
+    ('maps', '0004_remove_place_reviews_alter_placereview_user'),
+    ('users', '0001_initial'),
+  ]
 
-    operations = [
-        migrations.AlterField(
-            model_name="userprofile",
-            name="favorite_places",
-            field=models.ManyToManyField(related_name="users_who_favorited", to="maps.place"),
-        ),
-    ]
+  operations = [
+    migrations.AlterField(
+      model_name='userprofile',
+      name='favorite_places',
+      field=models.ManyToManyField(related_name='users_who_favorited', to='maps.place'),
+    ),
+  ]

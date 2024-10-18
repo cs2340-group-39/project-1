@@ -4,18 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("users", "0002_alter_userprofile_favorite_places"),
-    ]
+  dependencies = [
+    ('users', '0002_alter_userprofile_favorite_places'),
+  ]
 
-    operations = [
-        migrations.RemoveField(
-            model_name="userprofile",
-            name="favorite_places",
-        ),
-        migrations.AddField(
-            model_name="userprofile",
-            name="favorite_places",
-            field=models.JSONField(blank=True, default=list),
-        ),
-    ]
+  operations = [
+    migrations.RemoveField(
+      model_name='userprofile',
+      name='favorite_places',
+    ),
+    migrations.AddField(
+      model_name='userprofile',
+      name='favorite_places',
+      field=models.JSONField(blank=True, default=list),
+    ),
+  ]

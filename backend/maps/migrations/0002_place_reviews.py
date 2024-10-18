@@ -5,19 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("maps", "0001_initial"),
-    ]
+  dependencies = [
+    ('maps', '0001_initial'),
+  ]
 
-    operations = [
-        migrations.AddField(
-            model_name="place",
-            name="reviews",
-            field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.TextField(max_length=300),
-                blank=True,
-                default=[],
-                size=None,
-            ),
-        ),
-    ]
+  operations = [
+    migrations.AddField(
+      model_name='place',
+      name='reviews',
+      field=django.contrib.postgres.fields.ArrayField(
+        base_field=models.TextField(max_length=300),
+        blank=True,
+        default=[],
+        size=None,
+      ),
+    ),
+  ]

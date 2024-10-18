@@ -9,63 +9,65 @@ import maps.models
 
 
 class Migration(migrations.Migration):
-    initial = True
+  initial = True
 
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
+  dependencies = [
+    migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+  ]
 
-    operations = [
-        migrations.CreateModel(
-            name="Place",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("google_place_id", models.CharField(max_length=100, unique=True)),
-            ],
+  operations = [
+    migrations.CreateModel(
+      name='Place',
+      fields=[
+        (
+          'id',
+          models.BigAutoField(
+            auto_created=True,
+            primary_key=True,
+            serialize=False,
+            verbose_name='ID',
+          ),
         ),
-        migrations.CreateModel(
-            name="PlaceReview",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "rating",
-                    models.FloatField(
-                        validators=[
-                            django.core.validators.MinValueValidator(1.0),
-                            django.core.validators.MaxValueValidator(5.0),
-                            maps.models.is_valid_rating,
-                        ]
-                    ),
-                ),
-                ("text", models.TextField(max_length=300)),
-                ("timestamp", models.DateTimeField(auto_now_add=True)),
-                (
-                    "place",
-                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="maps.place"),
-                ),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-            ],
+        ('google_place_id', models.CharField(max_length=100, unique=True)),
+      ],
+    ),
+    migrations.CreateModel(
+      name='PlaceReview',
+      fields=[
+        (
+          'id',
+          models.BigAutoField(
+            auto_created=True,
+            primary_key=True,
+            serialize=False,
+            verbose_name='ID',
+          ),
         ),
-    ]
+        (
+          'rating',
+          models.FloatField(
+            validators=[
+              django.core.validators.MinValueValidator(1.0),
+              django.core.validators.MaxValueValidator(5.0),
+              maps.models.is_valid_rating,
+            ]
+          ),
+        ),
+        ('text', models.TextField(max_length=300)),
+        ('timestamp', models.DateTimeField(auto_now_add=True)),
+        (
+          'place',
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE, to='maps.place'
+          ),
+        ),
+        (
+          'user',
+          models.ForeignKey(
+            on_delete=django.db.models.deletion.CASCADE,
+            to=settings.AUTH_USER_MODEL,
+          ),
+        ),
+      ],
+    ),
+  ]

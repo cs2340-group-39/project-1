@@ -6,28 +6,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("maps", "0004_remove_place_reviews_alter_placereview_user"),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
+  dependencies = [
+    ('maps', '0004_remove_place_reviews_alter_placereview_user'),
+    migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+  ]
 
-    operations = [
-        migrations.AlterField(
-            model_name="placereview",
-            name="place",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="reviews_for_place",
-                to="maps.place",
-            ),
-        ),
-        migrations.AlterField(
-            model_name="placereview",
-            name="user",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="reviews_for_user",
-                to=settings.AUTH_USER_MODEL,
-            ),
-        ),
-    ]
+  operations = [
+    migrations.AlterField(
+      model_name='placereview',
+      name='place',
+      field=models.ForeignKey(
+        on_delete=django.db.models.deletion.CASCADE,
+        related_name='reviews_for_place',
+        to='maps.place',
+      ),
+    ),
+    migrations.AlterField(
+      model_name='placereview',
+      name='user',
+      field=models.ForeignKey(
+        on_delete=django.db.models.deletion.CASCADE,
+        related_name='reviews_for_user',
+        to=settings.AUTH_USER_MODEL,
+      ),
+    ),
+  ]

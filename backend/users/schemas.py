@@ -4,19 +4,19 @@ from ninja import Schema
 
 
 class UserSchema(Schema):
-    id: int
+  id: int
 
 
 class PlaceSchema(Schema):
-    google_place_id: str
+  google_place_id: str
 
 
 class UserProfileSchema(Schema):
-    user: UserSchema
-    favorite_places: List[PlaceSchema]
+  user: UserSchema
+  favorite_places: List[PlaceSchema]
 
 
 class PlaceReviewSchema(Schema):
-    place: PlaceSchema
-    text: str
-    rating: float
+  place: PlaceSchema
+  text: str
+  rating: float

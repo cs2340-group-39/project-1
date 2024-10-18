@@ -7,21 +7,21 @@ import { AuroraBackground } from "../../components/ui/aurora-background";
 import "../../globals.css";
 
 function LoginPage(): JSX.Element {
-    return (
-        <>
-            <AuroraBackground>
-                <LoginForm />
-            </AuroraBackground>
-        </>
-    );
+  return (
+    <>
+      <AuroraBackground>
+        <LoginForm />
+      </AuroraBackground>
+    </>
+  );
 }
 
 const rootElement = document.getElementById("root")!;
 
 createRoot(rootElement).render(
-    <StrictMode>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <LoginPage />
-        </ThemeProvider>
-    </StrictMode>
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <LoginPage />
+    </ThemeProvider>
+  </StrictMode>
 );

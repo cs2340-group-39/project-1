@@ -20,14 +20,16 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/dashboard/index/", permanent=True)),
-    path("admin/", admin.site.urls),
-    # Removing legacy login pages, uncomment to see them again.
-    path("accounts/", include("allauth.urls")),
-    path("accounts/", include("allauth.socialaccount.urls")),
-    path("_allauth/", include("allauth.headless.urls")),
-    path("info/", include("info.urls")),
-    path("maps/", include("maps.urls")),  # TODO: remove maps app and merge functionality with dashboard
-    path("users/", include("users.urls")),
-    path("dashboard/", include("dashboard.urls")),
+  path('', RedirectView.as_view(url='/dashboard/index/', permanent=True)),
+  path('admin/', admin.site.urls),
+  # Removing legacy login pages, uncomment to see them again.
+  path('accounts/', include('allauth.urls')),
+  path('accounts/', include('allauth.socialaccount.urls')),
+  path('_allauth/', include('allauth.headless.urls')),
+  path('info/', include('info.urls')),
+  path(
+    'maps/', include('maps.urls')
+  ),  # TODO: remove maps app and merge functionality with dashboard
+  path('users/', include('users.urls')),
+  path('dashboard/', include('dashboard.urls')),
 ]

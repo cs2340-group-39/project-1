@@ -7,21 +7,21 @@ import { AuroraBackground } from "../../components/ui/aurora-background";
 import "../../globals.css";
 
 function CodeFormPage(): JSX.Element {
-    return (
-        <>
-            <AuroraBackground>
-                <CodeForm />
-            </AuroraBackground>
-        </>
-    );
+  return (
+    <>
+      <AuroraBackground>
+        <CodeForm />
+      </AuroraBackground>
+    </>
+  );
 }
 
 const rootElement = document.getElementById("root")!;
 
 createRoot(rootElement).render(
-    <StrictMode>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <CodeFormPage />
-        </ThemeProvider>
-    </StrictMode>
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <CodeFormPage />
+    </ThemeProvider>
+  </StrictMode>
 );

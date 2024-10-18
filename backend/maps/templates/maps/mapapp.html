@@ -1,446 +1,473 @@
 <!DOCTYPE html>
 {% load static %}
 <html>
-    <head>
-        <title>Google Maps with Search</title>
-        <style>
-            /* Set the size of the map and search bar */
-            #map {
-                height: 500px; /* Adjust height as needed */
-                width: 100%; /* Adjust width as needed */
+  <head>
+    <title>Google Maps with Search</title>
+    <style>
+      /* Set the size of the map and search bar */
+      #map {
+        height: 500px; /* Adjust height as needed */
+        width: 100%; /* Adjust width as needed */
+      }
+      #location-search-box {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      #cuisine-search-box {
+        margin: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .info-panel {
+        position: absolute;
+        top: 20px; /* Add some top padding */
+        right: 20px; /* Add some right padding */
+        width: 300px; /* Fixed width */
+        height: 100vh; /* Full height */
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        display: none; /* Hidden by default */
+        z-index: 1000; /* Ensure it's above the map */
+        overflow-y: auto; /* Enable scrolling if content overflows */
+      }
+
+      .info-panel img {
+        width: 100%; /* Responsive image */
+        height: auto;
+      }
+
+      .info-panel h2 {
+        margin-top: 0;
+      }
+
+      .review {
+        margin-bottom: 20px;
+      }
+
+      .author {
+        font-weight: bold;
+      }
+
+      .rating {
+        color: gold;
+      }
+
+      .close-btn {
+        cursor: pointer;
+        float: right;
+        border: none;
+        background: transparent;
+        font-size: 1.5em;
+        color: red;
+        margin-left: 10px; /* Spacing between the close button and the text */
+      }
+
+      .star-button {
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        outline: none;
+        width: 40px;
+        height: 40px;
+        margin-top: 4px;
+        transition: fill 0.3s;
+      }
+
+      .star {
+        fill: lightgray; /* Default star color */
+        transition: fill 0.3s;
+      }
+
+      .star.filled {
+        fill: gold; /* Filled star color */
+      }
+
+      .collapsible {
+        cursor: pointer;
+        background-color: #eee;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+        padding: 10px;
+        width: 100%;
+      }
+      .content {
+        display: none;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Google Maps Search</h1>
+    <!-- Search bar for places -->
+    <label for="location-search-box"></label
+    ><input
+      id="location-search-box"
+      type="text"
+      placeholder="Search for places..."
+    />
+
+    <!-- Search for Cuisine and Place !-->
+    <label for="cuisine-search-box"></label
+    ><input
+      id="cuisine-search-box"
+      type="text"
+      placeholder="Search for cuisine type..."
+    />
+
+    <!-- Content filters for rating and radius -->
+    <div class="filter-container">
+      <button class="collapsible">Filter Options</button>
+      <div class="content">
+        <label for="rating"
+          >Minimum Rating: <span id="ratingValue">1</span></label
+        >
+        <input type="range" id="rating" min="1" max="5" value="1" step="0.1" />
+        <br />
+        <label for="radiusValue">Radius</label
+        ><input type="text" id="radiusValue" value="1" style="width: 50px" />
+        <button id="toggleUnit">kilometers</button>
+        <br /><br />
+        <button id="searchButton">Search</button>
+      </div>
+    </div>
+
+    <!-- The map will be rendered here -->
+    <div id="map"></div>
+
+    <div id="infoPanel" class="info-panel">
+      <button onclick="closeInfoPanel()" style="float: right">&times;</button>
+      <!-- Content will be inserted here dynamically -->
+    </div>
+
+    <!-- Load the Google Maps JavaScript API with Places Library -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
+    <script>
+      let map;
+      let service;
+      let markers = [];
+      let fullscreen = false;
+      let infoPanel;
+      let currentInfoWindow;
+      let currentUnit = "kilometers";
+      let currentRating = 1.0;
+      let currentRadius = 0;
+      function initMap() {
+        // Define the map options
+        const mapOptions = {
+          zoom: 8,
+        };
+
+        let userLocation;
+
+        // Create a new map
+        map = new google.maps.Map(document.getElementById("map"), mapOptions);
+        service = new google.maps.places.PlacesService(map);
+        // Create a new PlacesAutocomplete instance
+        var location_input = document.getElementById("location-search-box");
+        var cuisine_input = document.getElementById("cuisine-search-box");
+        var autocomplete = new google.maps.places.Autocomplete(location_input);
+        infoPanel = document.getElementById("infoPanel");
+
+        // Event listeners for filters
+        const ratingSlider = document.getElementById("rating");
+        const radiusValue = document.getElementById("radiusValue");
+        const ratingValue = document.getElementById("ratingValue");
+        const toggleUnitButton = document.getElementById("toggleUnit");
+
+        // search button
+        const searchButton = document.getElementById("searchButton");
+
+        ratingSlider.oninput = function () {
+          ratingValue.innerText = this.value;
+          currentRating = Number(this.value);
+        };
+
+        toggleUnitButton.onclick = function () {
+          if (currentUnit === "miles") {
+            currentUnit = "kilometers";
+            toggleUnitButton.innerText = "kilometers";
+            currentRadius = Number(
+              document.getElementById("radiusValue").value
+            );
+          } else {
+            currentUnit = "miles";
+            toggleUnitButton.innerText = "miles";
+            currentRadius = Number(
+              document.getElementById("radiusValue").value
+            );
+          }
+        };
+
+        radiusValue.oninput = function () {
+          radiusValue.innerText = this.value;
+          currentRadius = Number(this.value);
+        };
+
+        searchButton.onclick = function () {
+          let request = {
+            location: autocomplete.getPlace().geometry.location,
+            radius: `2000`, // default 2 kilometers
+            type: ["restaurant"],
+            keyword: cuisine_input.value, // Use the cuisine input value
+          };
+          if (currentRadius > 0 && currentRadius <= 10) {
+            if (document.getElementById("toggleUnit").value === "miles") {
+              request.radius = currentRadius * 1000 * 1.60934;
+            } else {
+              request.radius = currentRadius * 1000;
             }
-            #location-search-box {
-                margin: 10px;
-                padding: 10px;
-                border-radius: 5px;
-                border: 1px solid #ccc;
+          }
+          // Perform the nearby search
+          performNearbySearch(request);
+        };
+
+        // Collapsible filter functionality
+        document
+          .querySelector(".collapsible")
+          .addEventListener("click", function () {
+            this.classList.toggle("active");
+            const content = this.nextElementSibling;
+            if (content.style.display === "block") {
+              content.style.display = "none";
+            } else {
+              content.style.display = "block";
             }
-            #cuisine-search-box {
-                margin: 10px;
-                padding: 10px;
-                border-radius: 5px;
-                border: 1px solid #ccc;
+          });
+
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(
+          location_input
+        );
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(cuisine_input);
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function (position) {
+            userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+
+            // Set the map's center to the user's location
+            map.setCenter(userLocation);
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, map.getCenter());
+        }
+
+        function handleLocationError(browserHasGeolocation, pos) {
+          var infoWindow = new google.maps.InfoWindow({
+            map: map,
+            position: pos,
+            content: browserHasGeolocation
+              ? "Error: The Geolocation service failed."
+              : "Error: Your browser doesn't support geolocation.",
+          });
+        }
+
+        // Bind the autocomplete object to the map and the search box
+        autocomplete.bindTo("bounds", map);
+
+        // Add an event listener to handle the place selection
+        autocomplete.addListener("place_changed", function () {
+          const place = autocomplete.getPlace();
+
+          // Clear existing markers
+          clearMarkers();
+
+          if (!place.geometry) {
+            alert("No details available for input: '" + place.name + "'");
+            return;
+          }
+
+          // Fit the map to the place's geometry
+          if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+          } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(15); // Set a suitable zoom level
+          }
+
+          var currLocMarker = new google.maps.Marker({
+            map: map,
+            position: place.geometry.location,
+            title: place.name,
+          });
+          currLocMarker.addListener("click", () => {
+            const infoWindow = new google.maps.InfoWindow();
+            infoWindow.setContent(place.name);
+            infoWindow.open(map, currLocMarker);
+          });
+          markers.push(currLocMarker);
+
+          // Perform the nearby search based on the selected place
+          let request = {
+            location: place.geometry.location,
+            radius: `2000`, // default 2 kilometers
+            type: ["restaurant"],
+            keyword: cuisine_input.value, // Use the cuisine input value
+          };
+          if (currentRadius > 0 && currentRadius <= 10) {
+            if (document.getElementById("toggleUnit").value === "miles") {
+              request.radius = currentRadius * 1000 * 1.60934;
+            } else {
+              request.radius = currentRadius * 1000;
             }
+          }
+          // Perform the nearby search
+          performNearbySearch(request);
+        });
 
-            .info-panel {
-                position: absolute;
-                top: 20px; /* Add some top padding */
-                right: 20px; /* Add some right padding */
-                width: 300px; /* Fixed width */
-                height: 100vh; /* Full height */
-                background: white;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                padding: 15px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-                display: none; /* Hidden by default */
-                z-index: 1000; /* Ensure it's above the map */
-                overflow-y: auto; /* Enable scrolling if content overflows */
-            }
+        cuisine_input.addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            clearMarkers();
+            // re-assign cuisine input and location input and autocomplete
+            cuisine_input = document.getElementById("cuisine-search-box");
+            location_input = document.getElementById("location-search-box");
 
-            .info-panel img {
-                width: 100%; /* Responsive image */
-                height: auto;
-            }
+            // get the place from autocomplete
+            const place = autocomplete.getPlace();
 
-            .info-panel h2 {
-                margin-top: 0;
-            }
+            // add our current location back
+            var currLocMarker = new google.maps.Marker({
+              map: map,
+              position: place.geometry.location,
+              title: place.name,
+            });
+            currLocMarker.addListener("click", () => {
+              const infoWindow = new google.maps.InfoWindow();
+              infoWindow.setContent(place.name);
+              infoWindow.open(map, currLocMarker);
+            });
 
-            .review {
-                margin-bottom: 20px;
-            }
+            markers.push(currLocMarker);
 
-            .author {
-                font-weight: bold;
-            }
-
-            .rating {
-                color: gold;
-            }
-
-            .close-btn {
-                cursor: pointer;
-                float: right;
-                border: none;
-                background: transparent;
-                font-size: 1.5em;
-                color: red;
-                margin-left: 10px; /* Spacing between the close button and the text */
-            }
-
-            .star-button {
-                cursor: pointer;
-                background: transparent;
-                border: none;
-                outline: none;
-                width: 40px;
-                height: 40px;
-                margin-top: 4px;
-                transition: fill 0.3s;
-            }
-
-            .star {
-                fill: lightgray; /* Default star color */
-                transition: fill 0.3s;
-            }
-
-            .star.filled {
-                fill: gold; /* Filled star color */
-            }
-
-            .collapsible {
-                cursor: pointer;
-                background-color: #eee;
-                border: none;
-                text-align: left;
-                outline: none;
-                font-size: 15px;
-                padding: 10px;
-                width: 100%;
-            }
-            .content {
-                display: none;
-                overflow: hidden;
-                margin-top: 10px;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Google Maps Search</h1>
-        <!-- Search bar for places -->
-        <label for="location-search-box"></label
-        ><input id="location-search-box" type="text" placeholder="Search for places..." />
-
-        <!-- Search for Cuisine and Place !-->
-        <label for="cuisine-search-box"></label
-        ><input id="cuisine-search-box" type="text" placeholder="Search for cuisine type..." />
-
-        <!-- Content filters for rating and radius -->
-        <div class="filter-container">
-            <button class="collapsible">Filter Options</button>
-            <div class="content">
-                <label for="rating">Minimum Rating: <span id="ratingValue">1</span></label>
-                <input type="range" id="rating" min="1" max="5" value="1" step="0.1" />
-                <br />
-                <label for="radiusValue">Radius</label
-                ><input type="text" id="radiusValue" value="1" style="width: 50px" />
-                <button id="toggleUnit">kilometers</button>
-                <br /><br />
-                <button id="searchButton">Search</button>
-            </div>
-        </div>
-
-        <!-- The map will be rendered here -->
-        <div id="map"></div>
-
-        <div id="infoPanel" class="info-panel">
-            <button onclick="closeInfoPanel()" style="float: right">&times;</button>
-            <!-- Content will be inserted here dynamically -->
-        </div>
-
-        <!-- Load the Google Maps JavaScript API with Places Library -->
-        <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places"></script>
-        <script>
-            let map;
-            let service;
-            let markers = [];
-            let fullscreen = false;
-            let infoPanel;
-            let currentInfoWindow;
-            let currentUnit = "kilometers";
-            let currentRating = 1.0;
-            let currentRadius = 0;
-            function initMap() {
-                // Define the map options
-                const mapOptions = {
-                    zoom: 8,
-                };
-
-                let userLocation;
-
-                // Create a new map
-                map = new google.maps.Map(document.getElementById("map"), mapOptions);
-                service = new google.maps.places.PlacesService(map);
-                // Create a new PlacesAutocomplete instance
-                var location_input = document.getElementById("location-search-box");
-                var cuisine_input = document.getElementById("cuisine-search-box");
-                var autocomplete = new google.maps.places.Autocomplete(location_input);
-                infoPanel = document.getElementById("infoPanel");
-
-                // Event listeners for filters
-                const ratingSlider = document.getElementById("rating");
-                const radiusValue = document.getElementById("radiusValue");
-                const ratingValue = document.getElementById("ratingValue");
-                const toggleUnitButton = document.getElementById("toggleUnit");
-
-                // search button
-                const searchButton = document.getElementById("searchButton");
-
-                ratingSlider.oninput = function () {
-                    ratingValue.innerText = this.value;
-                    currentRating = Number(this.value);
-                };
-
-                toggleUnitButton.onclick = function () {
-                    if (currentUnit === "miles") {
-                        currentUnit = "kilometers";
-                        toggleUnitButton.innerText = "kilometers";
-                        currentRadius = Number(document.getElementById("radiusValue").value);
-                    } else {
-                        currentUnit = "miles";
-                        toggleUnitButton.innerText = "miles";
-                        currentRadius = Number(document.getElementById("radiusValue").value);
-                    }
-                };
-
-                radiusValue.oninput = function () {
-                    radiusValue.innerText = this.value;
-                    currentRadius = Number(this.value);
-                };
-
-                searchButton.onclick = function () {
-                    let request = {
-                        location: autocomplete.getPlace().geometry.location,
-                        radius: `2000`, // default 2 kilometers
-                        type: ["restaurant"],
-                        keyword: cuisine_input.value, // Use the cuisine input value
-                    };
-                    if (currentRadius > 0 && currentRadius <= 10) {
-                        if (document.getElementById("toggleUnit").value === "miles") {
-                            request.radius = currentRadius * 1000 * 1.60934;
-                        } else {
-                            request.radius = currentRadius * 1000;
-                        }
-                    }
-                    // Perform the nearby search
-                    performNearbySearch(request);
-                };
-
-                // Collapsible filter functionality
-                document.querySelector(".collapsible").addEventListener("click", function () {
-                    this.classList.toggle("active");
-                    const content = this.nextElementSibling;
-                    if (content.style.display === "block") {
-                        content.style.display = "none";
-                    } else {
-                        content.style.display = "block";
-                    }
-                });
-
-                map.controls[google.maps.ControlPosition.TOP_LEFT].push(location_input);
-                map.controls[google.maps.ControlPosition.TOP_LEFT].push(cuisine_input);
-
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function (position) {
-                        userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                        };
-
-                        // Set the map's center to the user's location
-                        map.setCenter(userLocation);
-                    });
+            if (place.geometry) {
+              // Perform the nearby search with the current location
+              let request = {
+                location: place.geometry.location,
+                radius: `2000`, // 2 kilometers
+                type: ["restaurant"],
+                keyword: cuisine_input.value, // Use the cuisine input value
+              };
+              if (currentRadius > 0 && currentRadius <= 10) {
+                if (document.getElementById("toggleUnit").value === "miles") {
+                  request.radius = currentRadius * 1000 * 1.60934;
                 } else {
-                    // Browser doesn't support Geolocation
-                    handleLocationError(false, map.getCenter());
+                  request.radius = currentRadius * 1000;
                 }
-
-                function handleLocationError(browserHasGeolocation, pos) {
-                    var infoWindow = new google.maps.InfoWindow({
-                        map: map,
-                        position: pos,
-                        content: browserHasGeolocation
-                            ? "Error: The Geolocation service failed."
-                            : "Error: Your browser doesn't support geolocation.",
-                    });
-                }
-
-                // Bind the autocomplete object to the map and the search box
-                autocomplete.bindTo("bounds", map);
-
-                // Add an event listener to handle the place selection
-                autocomplete.addListener("place_changed", function () {
-                    const place = autocomplete.getPlace();
-
-                    // Clear existing markers
-                    clearMarkers();
-
-                    if (!place.geometry) {
-                        alert("No details available for input: '" + place.name + "'");
-                        return;
-                    }
-
-                    // Fit the map to the place's geometry
-                    if (place.geometry.viewport) {
-                        map.fitBounds(place.geometry.viewport);
-                    } else {
-                        map.setCenter(place.geometry.location);
-                        map.setZoom(15); // Set a suitable zoom level
-                    }
-
-                    var currLocMarker = new google.maps.Marker({
-                        map: map,
-                        position: place.geometry.location,
-                        title: place.name,
-                    });
-                    currLocMarker.addListener("click", () => {
-                        const infoWindow = new google.maps.InfoWindow();
-                        infoWindow.setContent(place.name);
-                        infoWindow.open(map, currLocMarker);
-                    });
-                    markers.push(currLocMarker);
-
-                    // Perform the nearby search based on the selected place
-                    let request = {
-                        location: place.geometry.location,
-                        radius: `2000`, // default 2 kilometers
-                        type: ["restaurant"],
-                        keyword: cuisine_input.value, // Use the cuisine input value
-                    };
-                    if (currentRadius > 0 && currentRadius <= 10) {
-                        if (document.getElementById("toggleUnit").value === "miles") {
-                            request.radius = currentRadius * 1000 * 1.60934;
-                        } else {
-                            request.radius = currentRadius * 1000;
-                        }
-                    }
-                    // Perform the nearby search
-                    performNearbySearch(request);
-                });
-
-                cuisine_input.addEventListener("keydown", function (event) {
-                    if (event.key === "Enter") {
-                        clearMarkers();
-                        // re-assign cuisine input and location input and autocomplete
-                        cuisine_input = document.getElementById("cuisine-search-box");
-                        location_input = document.getElementById("location-search-box");
-
-                        // get the place from autocomplete
-                        const place = autocomplete.getPlace();
-
-                        // add our current location back
-                        var currLocMarker = new google.maps.Marker({
-                            map: map,
-                            position: place.geometry.location,
-                            title: place.name,
-                        });
-                        currLocMarker.addListener("click", () => {
-                            const infoWindow = new google.maps.InfoWindow();
-                            infoWindow.setContent(place.name);
-                            infoWindow.open(map, currLocMarker);
-                        });
-
-                        markers.push(currLocMarker);
-
-                        if (place.geometry) {
-                            // Perform the nearby search with the current location
-                            let request = {
-                                location: place.geometry.location,
-                                radius: `2000`, // 2 kilometers
-                                type: ["restaurant"],
-                                keyword: cuisine_input.value, // Use the cuisine input value
-                            };
-                            if (currentRadius > 0 && currentRadius <= 10) {
-                                if (document.getElementById("toggleUnit").value === "miles") {
-                                    request.radius = currentRadius * 1000 * 1.60934;
-                                } else {
-                                    request.radius = currentRadius * 1000;
-                                }
-                            }
-                            performNearbySearch(request);
-                        } else {
-                            alert("Please select a location first.");
-                        }
-                    }
-                });
+              }
+              performNearbySearch(request);
+            } else {
+              alert("Please select a location first.");
             }
-            function performNearbySearch(request) {
-                // Clear existing markers
-                clearMarkers();
-                // Perform the nearby search
-                service.nearbySearch(request, function (results, status) {
+          }
+        });
+      }
+      function performNearbySearch(request) {
+        // Clear existing markers
+        clearMarkers();
+        // Perform the nearby search
+        service.nearbySearch(request, function (results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            results.forEach(function (place) {
+              service.getDetails(
+                { placeId: place.place_id },
+                function (details, status) {
+                  if (details.rating >= currentRating) {
                     if (status === google.maps.places.PlacesServiceStatus.OK) {
-                        results.forEach(function (place) {
-                            service.getDetails({ placeId: place.place_id }, function (details, status) {
-                                if (details.rating >= currentRating) {
-                                    if (status === google.maps.places.PlacesServiceStatus.OK) {
-                                        const locationMarker = new google.maps.Marker({
-                                            map: map,
-                                            position: details.geometry.location,
-                                            title: details.name,
-                                            icon: {
-                                                url: "{% static 'restaurant.png' %}",
-                                                scaledSize: new google.maps.Size(40, 40),
-                                            },
-                                        });
+                      const locationMarker = new google.maps.Marker({
+                        map: map,
+                        position: details.geometry.location,
+                        title: details.name,
+                        icon: {
+                          url: "{% static 'restaurant.png' %}",
+                          scaledSize: new google.maps.Size(40, 40),
+                        },
+                      });
 
-                                        // Create the content for the info window
-                                        let contentString = `<div><strong>${details.name}</strong><br>`;
-                                        if (details.rating) {
-                                            const ratingStr = createStarRating(details.rating);
-                                            contentString += `Rating: ${ratingStr} <br>`;
-                                        }
-                                        if (details.formatted_address) {
-                                            contentString += `Address: ${details.formatted_address} <br>`;
-                                        }
-                                        if (details.formatted_phone_number) {
-                                            contentString += `Phone: ${details.formatted_phone_number} <br>`;
-                                        }
-                                        if (details.photos && details.photos.length > 0) {
-                                            contentString += `<img src="${details.photos[0].getUrl({
-                                                maxWidth: 300,
-                                                maxHeight: 300,
-                                            })}" alt="${details.name}" style="width:100%; height:auto;"><br>`;
-                                        }
-                                        contentString += `</div>`;
+                      // Create the content for the info window
+                      let contentString = `<div><strong>${details.name}</strong><br>`;
+                      if (details.rating) {
+                        const ratingStr = createStarRating(details.rating);
+                        contentString += `Rating: ${ratingStr} <br>`;
+                      }
+                      if (details.formatted_address) {
+                        contentString += `Address: ${details.formatted_address} <br>`;
+                      }
+                      if (details.formatted_phone_number) {
+                        contentString += `Phone: ${details.formatted_phone_number} <br>`;
+                      }
+                      if (details.photos && details.photos.length > 0) {
+                        contentString += `<img src="${details.photos[0].getUrl(
+                          {
+                            maxWidth: 300,
+                            maxHeight: 300,
+                          }
+                        )}" alt="${
+                          details.name
+                        }" style="width:100%; height:auto;"><br>`;
+                      }
+                      contentString += `</div>`;
 
-                                        // Add a click listener for each marker
-                                        locationMarker.addListener("click", () => {
-                                            const infoWindow = new google.maps.InfoWindow();
-                                            infoWindow.setContent(contentString);
-                                            infoWindow.open(map, locationMarker);
-                                            // if it is fullscreen, put the info window on the right
-                                            openInfoPanel(contentString, details.name);
-                                            parseGoogleReviews(details);
-                                            if (currentInfoWindow) {
-                                                currentInfoWindow.close();
-                                            }
-                                            currentInfoWindow = infoWindow;
-                                        });
+                      // Add a click listener for each marker
+                      locationMarker.addListener("click", () => {
+                        const infoWindow = new google.maps.InfoWindow();
+                        infoWindow.setContent(contentString);
+                        infoWindow.open(map, locationMarker);
+                        // if it is fullscreen, put the info window on the right
+                        openInfoPanel(contentString, details.name);
+                        parseGoogleReviews(details);
+                        if (currentInfoWindow) {
+                          currentInfoWindow.close();
+                        }
+                        currentInfoWindow = infoWindow;
+                      });
 
-                                        markers.push(locationMarker); // Add to markers array
-                                    } else {
-                                        console.error("Details request failed due to: " + status);
-                                    }
-                                }
-                            });
-                        });
+                      markers.push(locationMarker); // Add to markers array
                     } else {
-                        console.error("Places search failed due to: " + status);
+                      console.error(
+                        "Details request failed due to: " + status
+                      );
                     }
-                });
-            }
+                  }
+                }
+              );
+            });
+          } else {
+            console.error("Places search failed due to: " + status);
+          }
+        });
+      }
 
-            function parseGoogleReviews(details) {
-                const reviews = details.reviews;
-                const reviewsContainer = document.getElementById("infoPanel");
+      function parseGoogleReviews(details) {
+        const reviews = details.reviews;
+        const reviewsContainer = document.getElementById("infoPanel");
 
-                reviews.forEach((review) => {
-                    const reviewDiv = document.createElement("div");
-                    reviewDiv.classList.add("review");
-                    reviewDiv.innerHTML = `
+        reviews.forEach((review) => {
+          const reviewDiv = document.createElement("div");
+          reviewDiv.classList.add("review");
+          reviewDiv.innerHTML = `
                     <div class="author">${review.author_name}</div>
                     <div class="rating">Rating: ${review.rating} ★</div>
                     <div class="text">${review.text}</div>
                 `;
-                    reviewsContainer.appendChild(reviewDiv);
-                });
-            }
+          reviewsContainer.appendChild(reviewDiv);
+        });
+      }
 
-            function openInfoPanel(contentString, name) {
-                infoPanel.style.display = "block"; // Show the panel
-                infoPanel.innerHTML = `
+      function openInfoPanel(contentString, name) {
+        infoPanel.style.display = "block"; // Show the panel
+        infoPanel.innerHTML = `
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <h2>${name}</h2>
                     <button class="close-btn" onclick="closeInfoPanel()">&times;</button>
@@ -452,44 +479,47 @@
                 </button>
                 <p>${contentString}</p>
             `;
-            }
+      }
 
-            function closeInfoPanel() {
-                infoPanel.style.display = "none"; // Hide the panel
-            }
+      function closeInfoPanel() {
+        infoPanel.style.display = "none"; // Hide the panel
+      }
 
-            function toggleStar(button) {
-                const star = button.querySelector(".star");
-                star.classList.toggle("filled"); // Toggle the filled class
-            }
+      function toggleStar(button) {
+        const star = button.querySelector(".star");
+        star.classList.toggle("filled"); // Toggle the filled class
+      }
 
-            function createStarRating(rating) {
-                const roundedRating = Math.round(rating);
-                const maxStars = 5;
-                let starHTML = "";
-                for (let i = 1; i <= maxStars; i++) {
-                    if (i <= roundedRating) {
-                        starHTML += "★"; // Full star
-                    } else {
-                        starHTML += "☆"; // Empty star
-                    }
-                }
-                return starHTML;
-            }
+      function createStarRating(rating) {
+        const roundedRating = Math.round(rating);
+        const maxStars = 5;
+        let starHTML = "";
+        for (let i = 1; i <= maxStars; i++) {
+          if (i <= roundedRating) {
+            starHTML += "★"; // Full star
+          } else {
+            starHTML += "☆"; // Empty star
+          }
+        }
+        return starHTML;
+      }
 
-            function clearMarkers() {
-                markers.forEach((marker) => marker.setMap(null));
-                markers.length = 0; // Clear the array
-            }
+      function clearMarkers() {
+        markers.forEach((marker) => marker.setMap(null));
+        markers.length = 0; // Clear the array
+      }
 
-            // Close panel when clicking outside of it
-            window.onclick = function (event) {
-                if (!infoPanel.contains(event.target) && event.target !== marker.getMap().getDiv()) {
-                    closeInfoPanel();
-                }
-            };
-            // Initialize the map when the window loads
-            window.onload = initMap;
-        </script>
-    </body>
+      // Close panel when clicking outside of it
+      window.onclick = function (event) {
+        if (
+          !infoPanel.contains(event.target) &&
+          event.target !== marker.getMap().getDiv()
+        ) {
+          closeInfoPanel();
+        }
+      };
+      // Initialize the map when the window loads
+      window.onload = initMap;
+    </script>
+  </body>
 </html>

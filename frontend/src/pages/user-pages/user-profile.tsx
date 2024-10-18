@@ -13,41 +13,41 @@ import ToasterLayout from "../../layouts/toaster-layout";
 import "../../globals.css";
 
 function ProfilePage(): ReactNode {
-    const [profilePage, setProfilePage] = useState("user-favorite-places-card");
+  const [profilePage, setProfilePage] = useState("user-favorite-places-card");
 
-    const renderForm = () => {
-        switch (profilePage) {
-            case "change-email-form":
-                return <ChangeEmailForm />;
-            case "change-password-form":
-                return <ChangePasswordForm />;
-            case "user-favorite-places-card":
-                return <UserFavoritePlacesCard />;
-            case "user-reviews-card":
-                return <UserReviewsCard />;
-            default:
-                return null;
-        }
-    };
+  const renderForm = () => {
+    switch (profilePage) {
+      case "change-email-form":
+        return <ChangeEmailForm />;
+      case "change-password-form":
+        return <ChangePasswordForm />;
+      case "user-favorite-places-card":
+        return <UserFavoritePlacesCard />;
+      case "user-reviews-card":
+        return <UserReviewsCard />;
+      default:
+        return null;
+    }
+  };
 
-    return (
-        <>
-            <AuroraBackground>
-                <ProfileNavbar className="top-2" setProfilePage={setProfilePage} />
-                {renderForm()}
-            </AuroraBackground>
-        </>
-    );
+  return (
+    <>
+      <AuroraBackground>
+        <ProfileNavbar className="top-2" setProfilePage={setProfilePage} />
+        {renderForm()}
+      </AuroraBackground>
+    </>
+  );
 }
 
 const rootElement = document.getElementById("root")!;
 
 createRoot(rootElement).render(
-    <StrictMode>
-        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <ToasterLayout>
-                <ProfilePage />
-            </ToasterLayout>
-        </ThemeProvider>
-    </StrictMode>
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <ToasterLayout>
+        <ProfilePage />
+      </ToasterLayout>
+    </ThemeProvider>
+  </StrictMode>
 );

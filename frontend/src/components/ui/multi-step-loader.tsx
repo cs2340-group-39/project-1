@@ -45,11 +45,7 @@ const XIcon = ({ className }: { className?: string }) => {
       stroke="currentColor"
       className={cn("w-6 h-6 ", className)}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6 18L18 6M6 6l12 12"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   );
 };
@@ -98,15 +94,12 @@ const LoaderCore = ({
             transition={{ duration: 0.5 }}
           >
             <div>
-              {index > value && (
-                <CheckIcon className="text-black dark:text-white" />
-              )}
+              {index > value && <CheckIcon className="text-black dark:text-white" />}
               {index <= value && loadingState.success && (
                 <CheckFilled
                   className={cn(
                     "text-black dark:text-white",
-                    value === index &&
-                      "text-black dark:text-lime-500 opacity-100"
+                    value === index && "text-black dark:text-lime-500 opacity-100"
                   )}
                 />
               )}
@@ -114,8 +107,7 @@ const LoaderCore = ({
                 <XFilledIcon
                   className={cn(
                     "text-black dark:text-white",
-                    value === index &&
-                      "text-red-500 dark:text-red-500 opacity-100"
+                    value === index && "text-red-500 dark:text-red-500 opacity-100"
                   )}
                 />
               )}
@@ -186,14 +178,7 @@ export const MultiStepLoader = ({
     }, duration);
 
     return () => clearTimeout(timeout);
-  }, [
-    currentState,
-    loading,
-    loop,
-    loadingStates.length,
-    duration,
-    onComplete,
-  ]);
+  }, [currentState, loading, loop, loadingStates.length, duration, onComplete]);
 
   return (
     <AnimatePresence mode="wait">

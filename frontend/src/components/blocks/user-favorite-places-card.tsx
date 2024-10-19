@@ -13,16 +13,13 @@ interface FavoritePlaceMessagesProps {
   favoritePlaces: FavoritePlace[];
 }
 
-const ReviewsList: React.FC<FavoritePlaceMessagesProps> = ({
-  favoritePlaces: favoritePlaces,
-}) => {
+const ReviewsList: React.FC<FavoritePlaceMessagesProps> = ({ favoritePlaces: favoritePlaces }) => {
   const [height, setHeight] = useState<number>(0);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (ref.current) {
-      const newHeight =
-        favoritePlaces.length > 0 ? ref.current.scrollHeight : 0;
+      const newHeight = favoritePlaces.length > 0 ? ref.current.scrollHeight : 0;
       setHeight(newHeight);
     }
   }, [favoritePlaces]);
@@ -32,10 +29,7 @@ const ReviewsList: React.FC<FavoritePlaceMessagesProps> = ({
       className="min-h-[30vh] transition-all duration-300 ease-in-out"
       style={{ height: height }}
     >
-      <div
-        ref={ref}
-        className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4"
-      >
+      <div ref={ref} className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4">
         {favoritePlaces.length > 0 ? (
           favoritePlaces.map((favoritePlace, index) => (
             <div
@@ -46,13 +40,8 @@ const ReviewsList: React.FC<FavoritePlaceMessagesProps> = ({
                 {favoritePlace.placeName}
               </h3>
               <div className="border-2 mb-6 border-zinc-500 animate-shimmer bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-6 font-medium text-zinc-300 transition-colors rounded-md p-3 mb-4">
-                <p className="text-sm text-zinc-300">
-                  {favoritePlace.placeAddress}
-                </p>
-                <LinkPreview
-                  url={favoritePlace.googleMapsUrl}
-                  className="text-white"
-                >
+                <p className="text-sm text-zinc-300">{favoritePlace.placeAddress}</p>
+                <LinkPreview url={favoritePlace.googleMapsUrl} className="text-white">
                   View on Google Maps
                 </LinkPreview>
               </div>
@@ -69,9 +58,7 @@ const ReviewsList: React.FC<FavoritePlaceMessagesProps> = ({
 };
 
 export function UserFavoritePlacesCard() {
-  let [favoritePlaceList, setFavoritePlaceList] = useState<FavoritePlace[]>(
-    []
-  );
+  let [favoritePlaceList, setFavoritePlaceList] = useState<FavoritePlace[]>([]);
 
   useEffect(() => {
     const doStuff = async () => {

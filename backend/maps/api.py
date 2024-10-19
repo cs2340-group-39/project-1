@@ -13,111 +13,92 @@ from users.models import UserProfile
 from .models import Place
 from .schemas import SearchParams
 
-api = NinjaAPI(urls_namespace='maps')
+api = NinjaAPI(urls_namespace="maps")
 
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 
 
 def get_cuisine_type(place_id):
-  headers = {'X-Goog-Api-Key': GOOGLE_API_KEY, 'X-Goog-FieldMask': 'types'}
+  headers = {"X-Goog-Api-Key": GOOGLE_API_KEY, "X-Goog-FieldMask": "types"}
   response = requests.get(
-    f'https://places.googleapis.com/v1/places/{place_id}',
+    f"https://places.googleapis.com/v1/places/{place_id}",
     headers=headers,
   )
-  return ' '.join(
-    [s.capitalize() for s in response.json()['types'][0].replace('_', ' ').split()]
-  )
+  return " ".join([s.capitalize() for s in response.json()["types"][0].replace("_", " ").split()])
 
 
-@api.get('/get_location')
+@api.get("/get_location")
 def get_location(request: HttpRequest):
   location = gmaps.geolocate()
-  timezone_id = gmaps.timezone(location=location['location'])['timeZoneId']
+  timezone_id = gmaps.timezone(location=location["location"])["timeZoneId"]
   timezone = pytz.timezone(timezone_id)
-  current_time = datetime.datetime.now(timezone).strftime('%H')
+  current_time = datetime.datetime.now(timezone).strftime("%H")
   return {
-    'latitude': location['location']['lat'],
-    'longitude': location['location']['lng'],
-    'hour': int(current_time),
+    "latitude": location["location"]["lat"],
+    "longitude": location["location"]["lng"],
+    "hour": int(current_time),
   }
 
 
-@api.post('/search_for_restaurants')
+@api.post("/search_for_restaurants")
 def search_for_restaurants(request: HttpRequest, params: SearchParams):
-  """
-  Example request body:
-
-  {
-      "location": {"lat": 37.7749, "lng": -122.4194},
-      "search_mode": "cuisine_type",
-      "query": "Italian",
-      "radius": 1000,
-      "rating": 4.0
-  }
-  """
   if not request.user.is_authenticated:
     return {
-      'status': HTTPStatus.FORBIDDEN,
-      'msg': 'User must be authenticated for this method.',
+      "status": HTTPStatus.FORBIDDEN,
+      "msg": "User must be authenticated for this method.",
     }
 
   response = []
 
   profile = UserProfile.objects.get(user=request.user)
   favorite_google_place_ids = [
-    favorite_place['google_place_id'] for favorite_place in profile.favorite_places
+    favorite_place["google_place_id"] for favorite_place in profile.favorite_places
   ]
 
-  query = ''
+  query = ""
   search_location = params.location
-  if params.location_name != '':
+  if params.location_name != "":
     geocode_result = gmaps.geocode(address=params.location_name)
     if len(geocode_result) > 0:
-      search_location = geocode_result[-0]['geometry']['location']
-  if params.query == 'cuisine_type':
-    query += f'Cuisine type: {params.cuisine_type}'
-  if params.query == 'restaurant_name':
-    query += f'; Restaurant name: {params.restaurant_name}'
+      search_location = geocode_result[-0]["geometry"]["location"]
+  if params.query == "cuisine_type":
+    query += f"Cuisine type: {params.cuisine_type}"
+  if params.query == "restaurant_name":
+    query += f"; Restaurant name: {params.restaurant_name}"
 
   result = gmaps.places(
     location=search_location,
     query=query,
     radius=params.radius,
-    type=['restaurant', 'bakery', 'cafe', 'meal_delivery', 'meal_takeaway'],
+    type=["restaurant", "bakery", "cafe", "meal_delivery", "meal_takeaway"],
   )
 
   def parse_address(address_string):
     pattern = r'<span class="([^"]+)">([^<]+)</span>'
     matches = re.findall(pattern, address_string)
-    address_dict = {
-      class_name.replace('-', '_'): content for class_name, content in matches
-    }
+    address_dict = {class_name.replace("-", "_"): content for class_name, content in matches}
     return address_dict
 
-  for place in result['results']:
-    if place['business_status'] != 'OPERATIONAL':
+  for place in result["results"]:
+    if place["business_status"] != "OPERATIONAL":
       continue
 
-    if place.get('rating') and place.get('rating') < params.rating:
+    if place.get("rating") and place.get("rating") < params.rating:
       continue
 
     distance_matrix = gmaps.distance_matrix(
       origins=f"place_id:{place["place_id"]}", destinations=search_location
     )
     try:
-      distance = distance_matrix['rows'][0]['elements'][0]['distance']['value']
+      distance = distance_matrix["rows"][0]["elements"][0]["distance"]["value"]
       if distance > params.radius:
         continue
     except KeyError:
       return []
 
-    place_result = gmaps.place(
-      place_id=place['place_id'], reviews_sort='most_relevant'
-    )['result']
-    place_model, created = Place.objects.get_or_create(
-      google_place_id=place['place_id']
-    )
+    place_result = gmaps.place(place_id=place["place_id"], reviews_sort="most_relevant")["result"]
+    place_model, created = Place.objects.get_or_create(google_place_id=place["place_id"])
 
     custom_place_reviews = []
     if not created:
@@ -125,67 +106,63 @@ def search_for_restaurants(request: HttpRequest, params: SearchParams):
 
     is_favorite_place = False
     if not created:
-      is_favorite_place = place['place_id'] in favorite_google_place_ids
+      is_favorite_place = place["place_id"] in favorite_google_place_ids
 
     description = (
-      place_result.get('editorial_summary')['overview']
-      if place_result.get('editorial_summary')
+      place_result.get("editorial_summary")["overview"]
+      if place_result.get("editorial_summary")
       else None
     )
-    cuisine_type = get_cuisine_type(place['place_id'])
+    cuisine_type = get_cuisine_type(place["place_id"])
 
-    response.append(
-      {
-        'place_id': place['place_id'],
-        'place_name': place['name'],
-        'contact_info': {
-          'address': parse_address(place_result['adr_address']),
-          'phone_number': place_result.get('international_phone_number'),
-          'google_maps_page': place_result.get('url'),
-        },
-        'location': {
-          'latitude': place['geometry']['location']['lat'],
-          'longitude': place['geometry']['location']['lng'],
-        },
-        'rating': place.get('rating'),
-        'is_open_now': (
-          place.get('opening_hours').get('open_now')
-          if place.get('opening_hours')
-          else None
-        ),
-        'timings': (
-          place_result.get('opening_hours').get('periods')
-          if place_result.get('opening_hours')
-          else None
-        ),
-        'reviews': (
-          [
-            {
-              'author_name': review['author_name'],
-              'rating': review['rating'],
-              'time': review['time'],
-              'text': review['text'],
-            }
-            for review in place_result.get('reviews')
-          ]
-          if place_result.get('reviews')
-          else []
-        ),
-        'custom_reviews': [
+    response.append({
+      "place_id": place["place_id"],
+      "place_name": place["name"],
+      "contact_info": {
+        "address": parse_address(place_result["adr_address"]),
+        "phone_number": place_result.get("international_phone_number"),
+        "google_maps_page": place_result.get("url"),
+      },
+      "location": {
+        "latitude": place["geometry"]["location"]["lat"],
+        "longitude": place["geometry"]["location"]["lng"],
+      },
+      "rating": place.get("rating"),
+      "is_open_now": (
+        place.get("opening_hours").get("open_now") if place.get("opening_hours") else None
+      ),
+      "timings": (
+        place_result.get("opening_hours").get("periods")
+        if place_result.get("opening_hours")
+        else None
+      ),
+      "reviews": (
+        [
           {
-            'author_name': custom_review.user.username,
-            'rating': custom_review.rating,
-            'time': custom_review.timestamp,
-            'text': custom_review.text,
+            "author_name": review["author_name"],
+            "rating": review["rating"],
+            "time": review["time"],
+            "text": review["text"],
           }
-          for custom_review in custom_place_reviews
-        ],
-        'is_favorite_place': is_favorite_place,
-        'description': description if description else 'No Description',
-        'cuisine_type': cuisine_type
-        if cuisine_type != 'Restaurant'
-        else 'No Cuisine Type Data Available',
-      }
-    )
+          for review in place_result.get("reviews")
+        ]
+        if place_result.get("reviews")
+        else []
+      ),
+      "custom_reviews": [
+        {
+          "author_name": custom_review.user.username,
+          "rating": custom_review.rating,
+          "time": custom_review.timestamp,
+          "text": custom_review.text,
+        }
+        for custom_review in custom_place_reviews
+      ],
+      "is_favorite_place": is_favorite_place,
+      "description": description if description else "No Description",
+      "cuisine_type": (
+        cuisine_type if cuisine_type != "Restaurant" else "No Cuisine Type Data Available"
+      ),
+    })
 
   return response

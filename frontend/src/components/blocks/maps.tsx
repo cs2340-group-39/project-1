@@ -4,27 +4,16 @@ import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import axios from "axios";
 import { StarIcon } from "lucide-react";
 import mapboxgl from "mapbox-gl";
-import {
-  MutableRefObject,
-  RefObject,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
 import ToasterLayout from "../../layouts/toaster-layout";
+import { toast } from "../hooks/use-toast";
 import createTextLayer from "../three/create-text-layer";
 import { Card, CardContent } from "../ui/card";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { LinkPreview } from "../ui/link-preview";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import {
   Sheet,
   SheetClose,
@@ -38,22 +27,10 @@ import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-import { toast } from "../hooks/use-toast";
 
-// Example API request body
-// {
-//     "location": {"lat": 37.7749, "lng": -122.4194},
-//     "search_mode": "cuisine_type",
-//     "query": "Italian",
-//     "radius": 1000,
-//     "rating": 4.0
-// }
-// @ts-ignore
-const PLACES_SEARCH_API_URL =
-  "http://127.0.0.1:8000/maps/api/search_for_restaurants";
+const PLACES_SEARCH_API_URL = "http://127.0.0.1:8000/maps/api/search_for_restaurants";
 const USER_INFO_API_URL = "http://127.0.0.1:8000/maps/api/get_location";
-const POST_FAVORITE_RESTAURANT_FOR_USER_URL =
-  "http://127.0.0.1:8000/users/api/add_favorite_place";
+const POST_FAVORITE_RESTAURANT_FOR_USER_URL = "http://127.0.0.1:8000/users/api/add_favorite_place";
 const PUT_FAVORITE_RESTAURANT_FOR_USER_URL =
   "http://127.0.0.1:8000/users/api/remove_favorite_place";
 const POST_REVIEW_FROM_USER_URL = "http://127.0.0.1:8000/users/api/add_review";
@@ -105,16 +82,10 @@ interface Content {
 }
 
 interface MapsData {
-  googleMapsApiKey: string;
   mapBoxAccessToken: string;
 }
 
-export default function Maps({
-  googleMapsApiKey,
-  mapBoxAccessToken,
-}: MapsData) {
-  googleMapsApiKey;
-
+export default function Maps({ mapBoxAccessToken }: MapsData) {
   const mapContainerRef: RefObject<HTMLDivElement | undefined> = useRef();
   // @ts-ignore
   const mapRef: MutableRefObject<mapboxgl.Map> = useRef();
@@ -158,15 +129,7 @@ export default function Maps({
         ? `${filtersRef.current.scrollHeight}px`
         : "0";
     }
-  }, [
-    filtersOpen,
-    cuisineType,
-    restaurantName,
-    locationName,
-    query,
-    radius,
-    rating,
-  ]);
+  }, [filtersOpen, cuisineType, restaurantName, locationName, query, radius, rating]);
 
   useEffect(() => {
     if (presetsRef.current) {
@@ -174,14 +137,7 @@ export default function Maps({
         ? `${presetsRef.current.scrollHeight}px`
         : "0";
     }
-  }, [
-    presetsOpen,
-    lightPreset,
-    showPlaceLabels,
-    showPOILabels,
-    showRoadLabels,
-    showTransitLabels,
-  ]);
+  }, [presetsOpen, lightPreset, showPlaceLabels, showPOILabels, showRoadLabels, showTransitLabels]);
 
   const handleSaveAsFavorite = async () => {
     const payload = {
@@ -232,9 +188,7 @@ export default function Maps({
 
     // First validate the data
     if (newReview.text.length > 500) {
-      newErrorMessages.push(
-        "Your review is too long, please keep it under 500 characters."
-      );
+      newErrorMessages.push("Your review is too long, please keep it under 500 characters.");
     }
 
     if (newReview.rating == 0) {
@@ -284,8 +238,7 @@ export default function Maps({
 
     toast({
       title: "Search pending...",
-      description:
-        "Please wait while we search for restaurants matching your query.",
+      description: "Please wait while we search for restaurants matching your query.",
     });
 
     const userInfoResponse = await axios.get(USER_INFO_API_URL);
@@ -396,11 +349,7 @@ export default function Maps({
 
       mapRef.current.on("style.load", () => {
         setStyleLoaded(true);
-        mapRef.current.setConfigProperty(
-          "basemap",
-          "lightPreset",
-          initialLightPreset
-        );
+        mapRef.current.setConfigProperty("basemap", "lightPreset", initialLightPreset);
       });
 
       mapRef.current.on("zoom", () => {
@@ -413,15 +362,10 @@ export default function Maps({
           layers: [
             new ScenegraphLayer<Pin>({
               id: "ScenegraphLayer1",
-              data: pinData.filter(
-                (d) => contentData[d.contentId].isFavoritePlace
-              ),
+              data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
               getPosition: (d: Pin) => [d.lng, d.lat, 0],
               getOrientation: (_: Pin) => [180, 0, 0],
-              scenegraph: new URL(
-                "./3d-models/favorite-pin.gltf",
-                import.meta.url
-              ).href,
+              scenegraph: new URL("./3d-models/favorite-pin.gltf", import.meta.url).href,
               sizeScale: 30,
               _lighting: "pbr",
               pickable: true,
@@ -439,15 +383,10 @@ export default function Maps({
             }),
             new ScenegraphLayer<Pin>({
               id: "ScenegraphLayer2",
-              data: pinData.filter(
-                (d) => !contentData[d.contentId].isFavoritePlace
-              ),
+              data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
               getPosition: (d: Pin) => [d.lng, d.lat, 0],
               getOrientation: (_: Pin) => [180, 0, 0],
-              scenegraph: new URL(
-                "./3d-models/normal-pin.gltf",
-                import.meta.url
-              ).href,
+              scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url).href,
               sizeScale: 30, // Apply adjusted sizeScale here
               _lighting: "pbr",
               pickable: true,
@@ -517,15 +456,10 @@ export default function Maps({
         layers: [
           new ScenegraphLayer<Pin>({
             id: "ScenegraphLayer1",
-            data: pinData.filter(
-              (d) => contentData[d.contentId].isFavoritePlace
-            ),
+            data: pinData.filter((d) => contentData[d.contentId].isFavoritePlace),
             getPosition: (d: Pin) => [d.lng, d.lat, 0],
             getOrientation: (_: Pin) => [180, 0, 0],
-            scenegraph: new URL(
-              "./3d-models/favorite-pin.gltf",
-              import.meta.url
-            ).href,
+            scenegraph: new URL("./3d-models/favorite-pin.gltf", import.meta.url).href,
             sizeScale: sizeScale,
             _lighting: "pbr",
             pickable: true,
@@ -543,13 +477,10 @@ export default function Maps({
           }),
           new ScenegraphLayer<Pin>({
             id: "ScenegraphLayer2",
-            data: pinData.filter(
-              (d) => !contentData[d.contentId].isFavoritePlace
-            ),
+            data: pinData.filter((d) => !contentData[d.contentId].isFavoritePlace),
             getPosition: (d: Pin) => [d.lng, d.lat, 0],
             getOrientation: (_: Pin) => [180, 0, 0],
-            scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url)
-              .href,
+            scenegraph: new URL("./3d-models/normal-pin.gltf", import.meta.url).href,
             sizeScale: sizeScale, // Apply adjusted sizeScale here
             _lighting: "pbr",
             pickable: true,
@@ -575,33 +506,11 @@ export default function Maps({
     if (!styleLoaded) return;
 
     mapRef.current.setConfigProperty("basemap", "lightPreset", lightPreset);
-    mapRef.current.setConfigProperty(
-      "basemap",
-      "showPlaceLabels",
-      showPlaceLabels
-    );
-    mapRef.current.setConfigProperty(
-      "basemap",
-      "showPointOfInterestLabels",
-      showPOILabels
-    );
-    mapRef.current.setConfigProperty(
-      "basemap",
-      "showRoadLabels",
-      showRoadLabels
-    );
-    mapRef.current.setConfigProperty(
-      "basemap",
-      "showTransitLabels",
-      showTransitLabels
-    );
-  }, [
-    lightPreset,
-    showPlaceLabels,
-    showPOILabels,
-    showRoadLabels,
-    showTransitLabels,
-  ]);
+    mapRef.current.setConfigProperty("basemap", "showPlaceLabels", showPlaceLabels);
+    mapRef.current.setConfigProperty("basemap", "showPointOfInterestLabels", showPOILabels);
+    mapRef.current.setConfigProperty("basemap", "showRoadLabels", showRoadLabels);
+    mapRef.current.setConfigProperty("basemap", "showTransitLabels", showTransitLabels);
+  }, [lightPreset, showPlaceLabels, showPOILabels, showRoadLabels, showTransitLabels]);
 
   return (
     <ToasterLayout>
@@ -672,9 +581,7 @@ export default function Maps({
 
                 {/* Show Transit Labels Toggle */}
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="showTransitLabels">
-                    Show transit labels
-                  </Label>
+                  <Label htmlFor="showTransitLabels">Show transit labels</Label>
                   <Switch
                     id="showTransitLabels"
                     checked={showTransitLabels}
@@ -744,12 +651,8 @@ export default function Maps({
                         <SelectValue placeholder="Select query type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="restaurant_name">
-                          Restaurant Name
-                        </SelectItem>
-                        <SelectItem value="cuisine_type">
-                          Cuisine Type
-                        </SelectItem>
+                        <SelectItem value="restaurant_name">Restaurant Name</SelectItem>
+                        <SelectItem value="cuisine_type">Cuisine Type</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -804,10 +707,7 @@ export default function Maps({
             }
           }}
         >
-          <SheetContent
-            side="right"
-            className="overflow-y-auto w-[36rem] sm:max-w-xl"
-          >
+          <SheetContent side="right" className="overflow-y-auto w-[36rem] sm:max-w-xl">
             {selectedPin && (
               <div className="space-y-6">
                 <SheetHeader className="text-center">
@@ -835,46 +735,21 @@ export default function Maps({
                     </p>
                     <p>
                       <span className="font-medium">Phone:</span>{" "}
-                      {
-                        contentData[selectedPin.contentId]?.contactInfo
-                          .phoneNumber
-                      }
+                      {contentData[selectedPin.contentId]?.contactInfo.phoneNumber}
                     </p>
                     <p>
                       <span className="font-medium">Address:</span>{" "}
-                      {
-                        contentData[selectedPin.contentId]?.contactInfo.address
-                          .streetAddress
-                      }
-                      ,{" "}
-                      {
-                        contentData[selectedPin.contentId]?.contactInfo.address
-                          .locality
-                      }
-                      ,{" "}
-                      {
-                        contentData[selectedPin.contentId]?.contactInfo.address
-                          .region
-                      }
-                      ,{" "}
-                      {
-                        contentData[selectedPin.contentId]?.contactInfo.address
-                          .countryName
-                      }
-                      ,{" "}
-                      {
-                        contentData[selectedPin.contentId]?.contactInfo.address
-                          .postalCode
-                      }
+                      {contentData[selectedPin.contentId]?.contactInfo.address.streetAddress},{" "}
+                      {contentData[selectedPin.contentId]?.contactInfo.address.locality},{" "}
+                      {contentData[selectedPin.contentId]?.contactInfo.address.region},{" "}
+                      {contentData[selectedPin.contentId]?.contactInfo.address.countryName},{" "}
+                      {contentData[selectedPin.contentId]?.contactInfo.address.postalCode}
                     </p>
                   </div>
 
                   <div className="mt-4 flex flex-row gap-x-8">
                     <LinkPreview
-                      url={
-                        contentData[selectedPin.contentId]?.contactInfo
-                          .googleMapsPage
-                      }
+                      url={contentData[selectedPin.contentId]?.contactInfo.googleMapsPage}
                       className="w-fit px-4 py-2 text-black dark:text-white rounded-md"
                     >
                       View on Google Maps
@@ -954,38 +829,28 @@ export default function Maps({
                   <h3 className="text-xl font-semibold text-black dark:text-white">
                     Reviews from our Users
                   </h3>
-                  {contentData[selectedPin.contentId]?.customReviews.length >
-                  0 ? (
+                  {contentData[selectedPin.contentId]?.customReviews.length > 0 ? (
                     <div className="space-y-4">
-                      {contentData[selectedPin.contentId]?.customReviews.map(
-                        (review, index) => (
-                          <div
-                            key={index}
-                            className="p-4 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
-                          >
-                            <p className="font-semibold text-lg text-black dark:text-white">
-                              {review.authorName}
-                            </p>
-                            <p className="text-yellow-400">
-                              Rating: {review.rating} / 5
-                            </p>
-                            <p className="mt-2 text-black dark:text-white">
-                              {review.text}
-                            </p>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
-                              {new Date(
-                                review.time * 1000
-                              ).toLocaleDateString()}
-                            </p>
-                          </div>
-                        )
-                      )}
+                      {contentData[selectedPin.contentId]?.customReviews.map((review, index) => (
+                        <div
+                          key={index}
+                          className="p-4 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
+                        >
+                          <p className="font-semibold text-lg text-black dark:text-white">
+                            {review.authorName}
+                          </p>
+                          <p className="text-yellow-400">Rating: {review.rating} / 5</p>
+                          <p className="mt-2 text-black dark:text-white">{review.text}</p>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
+                            {new Date(review.time * 1000).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="p-4 rounded-lg bg-gradient-to-r bg-white dark:bg-black shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
                       <p className="text-black dark:text-white">
-                        None of our users have left a review for this
-                        restaurant.
+                        None of our users have left a review for this restaurant.
                       </p>
                     </div>
                   )}
@@ -998,29 +863,21 @@ export default function Maps({
                   </h3>
                   {contentData[selectedPin.contentId]?.reviews.length > 0 ? (
                     <div className="space-y-4">
-                      {contentData[selectedPin.contentId]?.reviews.map(
-                        (review, index) => (
-                          <div
-                            key={index}
-                            className="p-4 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
-                          >
-                            <p className="font-semibold text-lg text-black dark:text-white">
-                              {review.authorName}
-                            </p>
-                            <p className="text-yellow-400">
-                              Rating: {review.rating} / 5
-                            </p>
-                            <p className="mt-2 text-black dark:text-white">
-                              {review.text}
-                            </p>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
-                              {new Date(
-                                review.time * 1000
-                              ).toLocaleDateString()}
-                            </p>
-                          </div>
-                        )
-                      )}
+                      {contentData[selectedPin.contentId]?.reviews.map((review, index) => (
+                        <div
+                          key={index}
+                          className="p-4 b-2 border-zinc-300 rounded-lg shadow-lg shadow-zinc-300 dark:shadow-zinc-600 text-black dark:text-white bg-white dark:bg-black"
+                        >
+                          <p className="font-semibold text-lg text-black dark:text-white">
+                            {review.authorName}
+                          </p>
+                          <p className="text-yellow-400">Rating: {review.rating} / 5</p>
+                          <p className="mt-2 text-black dark:text-white">{review.text}</p>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-300 mt-2">
+                            {new Date(review.time * 1000).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="p-4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg shadow-zinc-300 dark:shadow-zinc-600">
@@ -1059,19 +916,10 @@ const ErrorMessages: React.FC<ErrorMessagesProps> = ({ messages }) => {
   }, [messages]);
 
   return messages.length > 0 ? (
-    <div
-      className="transition-all duration-300 ease-in-out"
-      style={{ height: height }}
-    >
-      <div
-        ref={ref}
-        className="bg-red-50 dark:bg-red-900/10 rounded-lg p-4 my-4"
-      >
+    <div className="transition-all duration-300 ease-in-out" style={{ height: height }}>
+      <div ref={ref} className="bg-red-50 dark:bg-red-900/10 rounded-lg p-4 my-4">
         {messages.map((message, index) => (
-          <p
-            key={index}
-            className="text-red-600 dark:text-red-400 mb-2 last:mb-0"
-          >
+          <p key={index} className="text-red-600 dark:text-red-400 mb-2 last:mb-0">
             {message}
           </p>
         ))}

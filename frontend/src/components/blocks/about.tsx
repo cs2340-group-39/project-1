@@ -3,9 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useOutsideClick } from "../hooks/use-outside-click";
 
 export default function About() {
-  const [active, setActive] = useState<
-    (typeof cards)[number] | boolean | null
-  >(null);
+  const [active, setActive] = useState<(typeof cards)[number] | boolean | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
 
@@ -113,9 +111,7 @@ export default function About() {
                     exit={{ opacity: 0 }}
                     className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]"
                   >
-                    {typeof active.content === "function"
-                      ? active.content()
-                      : active.content}
+                    {typeof active.content === "function" ? active.content() : active.content}
                   </motion.div>
                 </div>
               </div>
@@ -202,26 +198,14 @@ export const CloseIcon = () => {
   );
 };
 
-const arjunSheshadriURL = new URL(
-  "./profile-pictures/arjun-sheshadri.jpeg",
-  import.meta.url
-).href;
-const williamMcConnellURL = new URL(
-  "./profile-pictures/william-mcconnell.jpg",
-  import.meta.url
-).href;
-const nicholasNietscheURL = new URL(
-  "./profile-pictures/nicholas-neitsche.jpg",
-  import.meta.url
-).href;
-const muhammadSaadAtaURL = new URL(
-  "./profile-pictures/muhammad-saad-ata.png",
-  import.meta.url
-).href;
-const johnnyPhanURL = new URL(
-  "./profile-pictures/johnny-phan.jpg",
-  import.meta.url
-).href;
+const arjunSheshadriURL = new URL("./profile-pictures/arjun-sheshadri.jpeg", import.meta.url).href;
+const williamMcConnellURL = new URL("./profile-pictures/william-mcconnell.jpg", import.meta.url)
+  .href;
+const nicholasNietscheURL = new URL("./profile-pictures/nicholas-neitsche.jpg", import.meta.url)
+  .href;
+const muhammadSaadAtaURL = new URL("./profile-pictures/muhammad-saad-ata.png", import.meta.url)
+  .href;
+const johnnyPhanURL = new URL("./profile-pictures/johnny-phan.jpg", import.meta.url).href;
 
 const cards = [
   {
@@ -233,10 +217,9 @@ const cards = [
     content: () => {
       return (
         <p>
-          Hello, my name is Will! I'm a second year computer science major with
-          concentrations in Intelligence and System Architecture. Some of my
-          hobbies include golfing, working out, and cooking. Throughout this
-          project, I have gained important web development and team skills,
+          Hello, my name is Will! I'm a second year computer science major with concentrations in
+          Intelligence and System Architecture. Some of my hobbies include golfing, working out, and
+          cooking. Throughout this project, I have gained important web development and team skills,
           preparing me for real world work.
         </p>
       );
@@ -251,10 +234,10 @@ const cards = [
     content: () => {
       return (
         <p>
-          Hello, my name is Arjun! I am a sophomore computer science major and
-          my threads are Intelligence and Mod/Sim. I am very passionate about
-          computer simulations, artificial intelligence, and biking. This
-          project has greatly helped me build my team building skills.
+          Hello, my name is Arjun! I am a sophomore computer science major and my threads are
+          Intelligence and Mod/Sim. I am very passionate about computer simulations, artificial
+          intelligence, and biking. This project has greatly helped me build my team building
+          skills.
         </p>
       );
     },
@@ -268,13 +251,12 @@ const cards = [
     content: () => {
       return (
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-          ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+          ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+          ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
+          sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
+          est laborum.
         </p>
       );
     },
@@ -288,10 +270,9 @@ const cards = [
     content: () => {
       return (
         <p>
-          I'm a junior studying Computer Science at Georgia Tech and interested
-          in Android App Development and Cybersecurity! I’m also a Codepath
-          Student where I have completed many courses that go in-depth into the
-          concepts of Android Development and Cybersecurity.
+          I'm a junior studying Computer Science at Georgia Tech and interested in Android App
+          Development and Cybersecurity! I’m also a Codepath Student where I have completed many
+          courses that go in-depth into the concepts of Android Development and Cybersecurity.
         </p>
       );
     },
@@ -305,14 +286,12 @@ const cards = [
     content: () => {
       return (
         <p>
-          Hi, I&apos;m Nicholas Nitsche. I have a passion for playing tennis;
-          there&apos;s something exhilarating about the competition and the
-          skill involved in each match. I love the way it challenges me both
-          physically and mentally. In addition to tennis, I&apos;m also an avid
-          gamer. I enjoy immersing myself in different virtual worlds and
-          experiencing the stories and challenges they offer. Whether I&apos;m
-          playing competitively or just for fun, video games provide a great
-          way to unwind and connect with friends. Balancing both sports and
+          Hi, I&apos;m Nicholas Nitsche. I have a passion for playing tennis; there&apos;s something
+          exhilarating about the competition and the skill involved in each match. I love the way it
+          challenges me both physically and mentally. In addition to tennis, I&apos;m also an avid
+          gamer. I enjoy immersing myself in different virtual worlds and experiencing the stories
+          and challenges they offer. Whether I&apos;m playing competitively or just for fun, video
+          games provide a great way to unwind and connect with friends. Balancing both sports and
           gaming keeps my life exciting and engaging!
         </p>
       );

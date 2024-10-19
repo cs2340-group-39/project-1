@@ -15,9 +15,7 @@ interface SidebarContextProps {
   animate: boolean;
 }
 
-const SidebarContext = createContext<SidebarContextProps | undefined>(
-  undefined
-);
+const SidebarContext = createContext<SidebarContextProps | undefined>(undefined);
 
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
@@ -68,9 +66,7 @@ export const Sidebar = ({
   );
 };
 
-export const SidebarBody = (
-  props: React.ComponentProps<typeof motion.div>
-) => {
+export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
   return (
     <>
       <DesktopSidebar {...props} />
@@ -105,11 +101,7 @@ export const DesktopSidebar = ({
   );
 };
 
-export const MobileSidebar = ({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div">) => {
+export const MobileSidebar = ({ className, children, ...props }: React.ComponentProps<"div">) => {
   const { open, setOpen } = useSidebar();
   return (
     <>
@@ -162,19 +154,13 @@ export const SidebarLink = ({
 }: {
   link: Links;
   className?: string;
-  props?: React.DetailedHTMLProps<
-    React.AnchorHTMLAttributes<HTMLAnchorElement>,
-    HTMLAnchorElement
-  >;
+  props?: React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>;
 }) => {
   const { open, animate } = useSidebar();
   return (
     <a
       href={link.href}
-      className={cn(
-        "flex items-center justify-start gap-2  group/sidebar py-2",
-        className
-      )}
+      className={cn("flex items-center justify-start gap-2  group/sidebar py-2", className)}
       {...props}
     >
       {link.icon}

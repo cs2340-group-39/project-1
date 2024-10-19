@@ -64,10 +64,7 @@ function InfoPage({ data }: InfoPageData) {
           )}
         </motion.div>
       </AuroraBackground>
-      <InfoNavbar
-        className="top-2"
-        data={{ userLoggedIn: data.userLoggedIn }}
-      />
+      <InfoNavbar className="top-2" data={{ userLoggedIn: data.userLoggedIn }} />
     </>
   );
 }

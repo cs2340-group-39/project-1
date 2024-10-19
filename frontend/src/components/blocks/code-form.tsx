@@ -1,12 +1,6 @@
 import axios from "axios";
 
-import React, {
-  ChangeEvent,
-  FormEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -27,19 +21,10 @@ const ErrorMessages: React.FC<ErrorMessagesProps> = ({ messages }) => {
   }, [messages]);
 
   return messages.length > 0 ? (
-    <div
-      className="transition-all duration-300 ease-in-out"
-      style={{ height: height }}
-    >
-      <div
-        ref={ref}
-        className="bg-red-50 dark:bg-red-900/10 rounded-lg p-4 my-4"
-      >
+    <div className="transition-all duration-300 ease-in-out" style={{ height: height }}>
+      <div ref={ref} className="bg-red-50 dark:bg-red-900/10 rounded-lg p-4 my-4">
         {messages.map((message, index) => (
-          <p
-            key={index}
-            className="text-red-600 dark:text-red-400 mb-2 last:mb-0"
-          >
+          <p key={index} className="text-red-600 dark:text-red-400 mb-2 last:mb-0">
             {message}
           </p>
         ))}
@@ -87,9 +72,7 @@ export function CodeForm() {
       }
     } catch (error: any) {
       if (error.response.data.status == 409) {
-        newErrorMessages.push(
-          "You are already authenticated. Log out to create a new account."
-        );
+        newErrorMessages.push("You are already authenticated. Log out to create a new account.");
       } else {
         newErrorMessages.push("Invalid code.");
       }
@@ -104,10 +87,9 @@ export function CodeForm() {
         Email Confirmation Code Form
       </h2>
       <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
-        An email has been sent to the email address that you have provided us.
-        If you receive a code, please type code in the box below. If you
-        haven't received a code in the email, the email will provide you with
-        further instructions on how to recover your account.
+        An email has been sent to the email address that you have provided us. If you receive a
+        code, please type code in the box below. If you haven't received a code in the email, the
+        email will provide you with further instructions on how to recover your account.
       </p>
 
       <form className="my-8" onSubmit={handleSubmit}>
@@ -157,9 +139,5 @@ const LabelInputContainer = ({
   children: React.ReactNode;
   className?: string;
 }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("flex flex-col space-y-2 w-full", className)}>{children}</div>;
 };

@@ -16,15 +16,9 @@ export default defineConfig({
         dashboard: resolve(__dirname, "src/pages/dashboard.tsx"),
         info: resolve(__dirname, "src/pages/info.tsx"),
         userLogin: resolve(__dirname, "src/pages/user-pages/user-login.tsx"),
-        codeForm: resolve(
-          __dirname,
-          "src/pages/user-pages/user-code-form.tsx"
-        ),
+        codeForm: resolve(__dirname, "src/pages/user-pages/user-code-form.tsx"),
         userSignup: resolve(__dirname, "src/pages/user-pages/user-signup.tsx"),
-        userProfile: resolve(
-          __dirname,
-          "src/pages/user-pages/user-profile.tsx"
-        ),
+        userProfile: resolve(__dirname, "src/pages/user-pages/user-profile.tsx"),
       },
       output: {
         entryFileNames: "[name].bundle.js",

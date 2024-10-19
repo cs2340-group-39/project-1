@@ -5,17 +5,9 @@ import * as THREE from "three";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 
-const calculateTextSize = (
-  text: string,
-  maxSize = 1,
-  minSize = 0.1,
-  referenceLength = 10
-) => {
+const calculateTextSize = (text: string, maxSize = 1, minSize = 0.1, referenceLength = 10) => {
   const textLength = text.length;
-  const size = Math.max(
-    minSize,
-    Math.min(maxSize, maxSize * (referenceLength / textLength))
-  );
+  const size = Math.max(minSize, Math.min(maxSize, maxSize * (referenceLength / textLength)));
   return size;
 };
 
@@ -67,47 +59,42 @@ export default function createTextLayer(
 
       // Load the font and create 3D text
       const loader = new FontLoader();
-      loader.load(
-        "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
-        (font) => {
-          const textGeometry = new TextGeometry(text, {
-            font: font,
-            size: 100,
-            depth: 15,
-            curveSegments: 20,
-            bevelEnabled: true,
-            bevelThickness: 2,
-            bevelSize: 1.5,
-            bevelOffset: 0,
-            bevelSegments: 5,
-          });
+      loader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", (font) => {
+        const textGeometry = new TextGeometry(text, {
+          font: font,
+          size: 100,
+          depth: 15,
+          curveSegments: 20,
+          bevelEnabled: true,
+          bevelThickness: 2,
+          bevelSize: 1.5,
+          bevelOffset: 0,
+          bevelSegments: 5,
+        });
 
-          // Center the text
-          textGeometry.computeBoundingBox();
-          const centerOffset =
-            -0.5 *
-            (textGeometry.boundingBox!.max.x -
-              textGeometry.boundingBox!.min.x);
+        // Center the text
+        textGeometry.computeBoundingBox();
+        const centerOffset =
+          -0.5 * (textGeometry.boundingBox!.max.x - textGeometry.boundingBox!.min.x);
 
-          const textMaterial = new THREE.MeshPhongMaterial({
-            color: 0x2194ce, // Base color of the material
-            specular: 0x111111, // Color of the specular highlights
-            shininess: 100, // How shiny the material appears (higher is shinier)
-            emissive: 0x000000, // Color the material appears to emit
-            emissiveIntensity: 0.5, // Intensity of the emissive color
-            transparent: true, // Allows the material to be transparent
-            opacity: 0.9, // Overall opacity of the material
-            side: THREE.DoubleSide, // Render both sides of the material
-          });
-          const mesh = new THREE.Mesh(textGeometry, textMaterial);
+        const textMaterial = new THREE.MeshPhongMaterial({
+          color: 0x2194ce, // Base color of the material
+          specular: 0x111111, // Color of the specular highlights
+          shininess: 100, // How shiny the material appears (higher is shinier)
+          emissive: 0x000000, // Color the material appears to emit
+          emissiveIntensity: 0.5, // Intensity of the emissive color
+          transparent: true, // Allows the material to be transparent
+          opacity: 0.9, // Overall opacity of the material
+          side: THREE.DoubleSide, // Render both sides of the material
+        });
+        const mesh = new THREE.Mesh(textGeometry, textMaterial);
 
-          mesh.position.x = centerOffset;
-          mesh.position.y = 0;
-          mesh.position.z = 0;
+        mesh.position.x = centerOffset;
+        mesh.position.y = 0;
+        mesh.position.z = 0;
 
-          this.scene.add(mesh);
-        }
-      );
+        this.scene.add(mesh);
+      });
 
       this.map = map;
 
@@ -143,13 +130,7 @@ export default function createTextLayer(
           modelTransform.translateY,
           modelTransform.translateZ
         )
-        .scale(
-          new THREE.Vector3(
-            modelTransform.scale,
-            -modelTransform.scale,
-            modelTransform.scale
-          )
-        )
+        .scale(new THREE.Vector3(modelTransform.scale, -modelTransform.scale, modelTransform.scale))
         .multiply(rotationX)
         .multiply(rotationY)
         .multiply(rotationZ);
@@ -163,21 +144,3 @@ export default function createTextLayer(
 
   return customLayer;
 }
-
-// mapboxgl.accessToken = "pk.eyJ1IjoiYXJqdW4yMDA1IiwiYSI6ImNtMWw5b2U5djAzMjEyanBybmI1eTBmaWMifQ.oXft7GdhdAgWBYQK1Fikcw";
-// const map = new mapboxgl.Map({
-//     container: "map",
-//     // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-//     style: "mapbox://styles/mapbox/light-v11",
-//     zoom: 18,
-//     center: [148.9819, -35.3981],
-//     pitch: 60,
-//     antialias: true, // create the gl context with MSAA antialiasing, so custom layers are antialiased
-// });
-
-// const modelOrigin = [148.9819, -35.39847];
-// const modelAltitude = 350;
-
-// map.on("style.load", () => {
-//     map.addLayer(createCustomLayer("Hello", modelOrigin, modelAltitude), "waterway-label");
-// });

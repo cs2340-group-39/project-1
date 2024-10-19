@@ -116,10 +116,7 @@ export const Menu: React.FC<MenuProps> = ({ setActive, children }) => {
     <nav className="w-full">
       {isMobile ? (
         <div className="flex justify-end p-4">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-black dark:text-white"
-          >
+          <button onClick={() => setIsOpen(!isOpen)} className="text-black dark:text-white">
             {isOpen ? <X size={24} /> : <MenuIcon size={24} />}
           </button>
         </div>

@@ -5,16 +5,12 @@ export default function DashboardDock() {
   const links = [
     {
       title: "Info Page",
-      icon: (
-        <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-      ),
+      icon: <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
       href: "/info/index",
     },
     {
       title: "Profile",
-      icon: (
-        <IconUser className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-      ),
+      icon: <IconUser className="h-full w-full text-neutral-500 dark:text-neutral-300" />,
       href: "/users/accounts/profile",
     },
   ];

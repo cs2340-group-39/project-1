@@ -33,10 +33,7 @@ const ReviewsList: React.FC<ReviewMessagesProps> = ({ reviews: reviews }) => {
       className="min-h-[30vh] transition-all duration-300 ease-in-out"
       style={{ height: height }}
     >
-      <div
-        ref={ref}
-        className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4"
-      >
+      <div ref={ref} className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4">
         {reviews.length > 0 ? (
           reviews.map((review, index) => (
             <div
@@ -57,14 +54,10 @@ const ReviewsList: React.FC<ReviewMessagesProps> = ({ reviews: reviews }) => {
                   {review.authorName}
                 </span>
                 <div className="flex items-center">
-                  <span className="font-bold text-yellow-500">
-                    {review.rating.toFixed(1)}
-                  </span>
+                  <span className="font-bold text-yellow-500">{review.rating.toFixed(1)}</span>
                 </div>
               </div>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-                {review.text}
-              </p>
+              <p className="text-zinc-600 dark:text-zinc-400 mb-6">{review.text}</p>
               <span className="text-xs text-zinc-500 dark:text-zinc-500">
                 {new Date(review.time * 1000).toLocaleDateString()}
               </span>
@@ -119,9 +112,7 @@ export function UserReviewsCard() {
 
   return (
     <div className="max-w-md w-full rounded-none md:rounded-2xl p-4 md:p-8 shadow-input bg-white dark:bg-black overflow-auto max-h-[75vh] z-10 relative">
-      <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">
-        Your Reviews
-      </h2>
+      <h2 className="font-bold text-xl text-neutral-800 dark:text-neutral-200">Your Reviews</h2>
       <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
         Here, you can see a list of all the places you have left a review at.
       </p>

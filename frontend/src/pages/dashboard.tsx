@@ -19,9 +19,7 @@ function DashboardPage({ data }: DashboardData): ReactElement {
   // @ts-ignore
   const handleLogout = async () => {
     try {
-      await axios.delete(
-        "http://127.0.0.1:8000/_allauth/browser/v1/auth/session"
-      ); // Lol this request throws a 401 every time so redirection must happen in catch block.
+      await axios.delete("http://127.0.0.1:8000/_allauth/browser/v1/auth/session"); // Lol this request throws a 401 every time so redirection must happen in catch block.
     } catch (error) {
       window.location.replace("/users/accounts/login/");
     }
@@ -29,17 +27,8 @@ function DashboardPage({ data }: DashboardData): ReactElement {
 
   return (
     <>
-      {/* <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1001 }}>
-                <Menu setActive={() => {}}>
-                    <button onClick={handleLogout}>Logout</button>
-                </Menu>
-            </div> */}
-
       <div className="overflow-hidden">
-        <Maps
-          googleMapsApiKey={data.googleMapsApiKey}
-          mapBoxAccessToken={data.mapBoxAccessToken}
-        />
+        <Maps mapBoxAccessToken={data.mapBoxAccessToken} />
       </div>
       <DashboardDock />
     </>

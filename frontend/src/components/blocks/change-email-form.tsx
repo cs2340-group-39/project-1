@@ -1,18 +1,11 @@
 import axios from "axios";
-import React, {
-  ChangeEvent,
-  FormEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { cn } from "../../lib/utils";
 import { useToast } from "../hooks/use-toast";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-const ALLAUTH_API_URL =
-  "http://127.0.0.1:8000/_allauth/browser/v1/account/email";
+const ALLAUTH_API_URL = "http://127.0.0.1:8000/_allauth/browser/v1/account/email";
 
 interface EmailObject {
   address: string;
@@ -42,14 +35,8 @@ const AssociatedEmails: React.FC<AssociatedEmailsProps> = ({
   }, [emails]);
 
   return (
-    <div
-      className="transition-all duration-300 ease-in-out"
-      style={{ height: height }}
-    >
-      <div
-        ref={ref}
-        className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4"
-      >
+    <div className="transition-all duration-300 ease-in-out" style={{ height: height }}>
+      <div ref={ref} className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4">
         {emails.length > 0 ? (
           emails.map((email, index) => (
             <div
@@ -89,9 +76,8 @@ const AssociatedEmails: React.FC<AssociatedEmailsProps> = ({
         ) : (
           <div className="text-amber-600 dark:text-amber-400 mb-4 last:mb-0 flex flex-col">
             <p className="font-medium">
-              Warning: You currently do not have any email address set up. You
-              should really add an email address so you can receive
-              notifications, reset your password, etc.
+              Warning: You currently do not have any email address set up. You should really add an
+              email address so you can receive notifications, reset your password, etc.
             </p>
           </div>
         )}
@@ -116,15 +102,9 @@ const AnimatedError: React.FC<AnimatedErrorProps> = ({ error }) => {
   }, [error]);
 
   return (
-    <div
-      className="transition-all duration-300 ease-in-out"
-      style={{ height: height }}
-    >
+    <div className="transition-all duration-300 ease-in-out" style={{ height: height }}>
       {error && (
-        <div
-          ref={ref}
-          className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4"
-        >
+        <div ref={ref} className="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 my-4">
           <p className="text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
@@ -198,9 +178,7 @@ export function ChangeEmailForm() {
         if (error.response.status === 400) {
           setError("Error: you cannot delete your primary email.");
         } else {
-          setError(
-            "Error: Failed to load associated emails. Please try again later."
-          );
+          setError("Error: Failed to load associated emails. Please try again later.");
         }
       } finally {
         setIsLoading(false);
@@ -450,9 +428,5 @@ const LabelInputContainer = ({
   children: React.ReactNode;
   className?: string;
 }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn("flex flex-col space-y-2 w-full", className)}>{children}</div>;
 };

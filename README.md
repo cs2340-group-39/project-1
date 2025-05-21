@@ -1,6 +1,6 @@
 ## Group 39's Food App
 
-Keep in mind, our main branch on our GitHub is main2. The reason for this is we had merge conflict errors that busted main branch somewhat on the later commits.
+Our Team's Website: https://groupcs39.wixsite.com/atlanta-food-finder
 
 To setup this project, first ensure you have python, node, npm, and npx installed and in your PATH.
 
